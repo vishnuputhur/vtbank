@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Society App - Shares</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      border: 1px solid #c3e8ff;
+    }
+    h2 {
+      color: #007AC1;
+      margin-bottom: 20px;
+    }
+    p {
+      color: #007AC1;
+      font-size: 16px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Share Details</h2>
+    <p>Share: <span id="shareValue">--</span></p>
+    <p>Share Amount: <span id="shareAmountValue">₹--</span></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
+      authDomain: "probanker-2bce7.firebaseapp.com",
+      projectId: "probanker-2bce7",
+      storageBucket: "probanker-2bce7.appspot.com",
+      messagingSenderId: "27106244956",
+      appId: "1:27106244956:web:59792c9dc94aa8e5232999",
+      measurementId: "G-31138VCDFZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      const shareValueEl = document.getElementById('shareValue');
+      const shareAmountValueEl = document.getElementById('shareAmountValue');
+
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            const shareValue = data.share !== undefined ? data.share : '--';
+            const shareAmountValue = data.shareAmount !== undefined ? data.shareAmount : 0;
+            shareValueEl.innerText = shareValue;
+            shareAmountValueEl.innerText = `₹${shareAmountValue.toFixed(2)}`;
+          }
+        } catch (error) {
+          console.error('Error loading share data:', error);
+        }
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
