@@ -9,11 +9,15 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 20px;
-      background: linear-gradient(135deg, #e0f7fa, #fff);
+      background: linear-gradient(135deg, #e0f7fa, #fff); /* Same gradient as before */
       display: flex;
-      justify-content: center;
+      flex-direction: column; /* Stack image and container vertically */
       align-items: center;
       min-height: 100vh;
+    }
+    .logo {
+      max-width: 150px; /* Adjust size as needed */
+      margin: 20px 0; /* Space above and below logo */
     }
     .container {
       background: #fff;
@@ -24,10 +28,6 @@
       padding: 30px;
       text-align: center;
       margin-bottom: 60px; /* Space for fixed footer */
-    }
-    .logo {
-      max-width: 150px;
-      margin-bottom: 20px;
     }
     h1 {
       color: #2c3e50;
@@ -66,12 +66,12 @@
     }
     button {
       width: 100%;
-      padding: 10px; /* Reduced padding for smaller button */
+      padding: 10px; /* Smaller button */
       background: #3498db;
       color: #fff;
       border: none;
       border-radius: 5px;
-      font-size: 14px; /* Smaller font size */
+      font-size: 14px; /* Smaller font */
       cursor: pointer;
       transition: background 0.3s ease;
     }
@@ -87,25 +87,18 @@
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: #2c3e50;
+      background: #2c3e50; /* Same dark footer color */
       color: #fff;
       text-align: center;
       padding: 10px;
       font-size: 14px;
     }
-    footer a {
-      color: #3498db;
-      text-decoration: none;
-    }
-    footer a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
+  <img src="logo.png" alt="Society App Logo" class="logo"> <!-- Replace with actual image path -->
   <div class="container">
-    <img src="logo.png" alt="Society App Logo" class="logo"> <!-- Replace with your image path -->
-    <h1>Society App Login</h1>
+    <h1>Login</h1> <!-- Changed to just "Login" -->
     <div class="form-group">
       <label>Email:</label>
       <input type="email" id="email" placeholder="Enter your email">
@@ -122,7 +115,7 @@
     <p id="error"></p>
   </div>
   <footer>
-    &copy; 2025 <a href="https://vtsoftsolutions.com" target="_blank">vtsoft</a>. All rights reserved.
+    cochin shipyard staff co-operative house construction society 2025
   </footer>
 
   <script type="module">
