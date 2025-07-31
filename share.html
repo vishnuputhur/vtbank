@@ -4,44 +4,126 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Society App - Shares</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
     body {
-      font-family: 'Poppins', sans-serif;
-      background: #f0f4f8;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      overflow-x: hidden;
+      backdrop-filter: blur(5px);
+      padding-bottom: 40px; /* Space for fixed footer */
     }
-    .container {
+
+    .cover-image {
+      width: 100%;
+      height: auto;
+      max-height: 169px;
+      object-fit: cover;
+      margin-top: 10px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .card-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
+    }
+
+    .card {
       background: #ffffff;
-      padding: 20px;
       border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      text-align: center;
+      padding: 15px; /* Compact padding */
       width: 90%;
-      max-width: 400px;
+      max-width: 350px; /* Compact size */
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
+      margin: 15px auto;
+      border: 1px solid #e0e7ff;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 18px; /* Compact font */
+      color: #007AC1;
+      margin-bottom: 15px;
+      font-weight: 600;
+      animation: pulse 2s infinite;
+    }
+
+    .amounts {
+      text-align: center;
+      margin: 10px 0; /* Reduced margin */
+      background: #f0f9ff;
+      padding: 10px; /* Compact padding */
+      border-radius: 10px;
       border: 1px solid #c3e8ff;
     }
-    h2 {
+
+    .amounts p {
+      margin: 5px 0; /* Reduced margin */
+      font-size: 14px; /* Compact font */
       color: #007AC1;
-      margin-bottom: 20px;
+      font-weight: 500;
     }
-    p {
-      color: #007AC1;
-      font-size: 16px;
-      margin: 10px 0;
+
+    #error {
+      color: #dc2626;
+      font-size: 12px; /* Compact font */
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .footer {
+      width: 100%;
+      background: #007AC1;
+      color: #ffffff;
+      text-align: center;
+      padding: 8px 0; /* Compact padding */
+      font-size: 10px; /* Compact font */
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+      animation: fadeIn 1.5s ease-in-out;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Share Details</h2>
-    <p>Share: <span id="shareValue">--</span></p>
-    <p>Share Amount: <span id="shareAmountValue">₹--</span></p>
+  <!-- Top Cover Image -->
+  <img src="https://i.ibb.co/Z6Wd0pnW/poster-2025-07-28-055229.png" alt="Top Poster" class="cover-image" />
+
+  <div class="card-container">
+    <div class="card">
+      <h2>Share Details</h2>
+      <div class="amounts">
+        <p>Share: <span id="shareValue">--</span></p>
+        <p>Share Amount: <span id="shareAmountValue">₹--</span></p>
+      </div>
+      <p id="error"></p>
+    </div>
   </div>
+
+  <div class="footer">Powered by VT Soft 2025</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
@@ -65,6 +147,7 @@
     onAuthStateChanged(auth, async (user) => {
       const shareValueEl = document.getElementById('shareValue');
       const shareAmountValueEl = document.getElementById('shareAmountValue');
+      const errorEl = document.getElementById('error');
 
       if (user) {
         try {
@@ -75,9 +158,11 @@
             const shareAmountValue = data.shareAmount !== undefined ? data.shareAmount : 0;
             shareValueEl.innerText = shareValue;
             shareAmountValueEl.innerText = `₹${shareAmountValue.toFixed(2)}`;
+          } else {
+            errorEl.innerText = 'User not found! Contact admin.';
           }
         } catch (error) {
-          console.error('Error loading share data:', error);
+          errorEl.innerText = 'Error loading share data: ' + error.message;
         }
       } else {
         window.location.href = 'index.html';
