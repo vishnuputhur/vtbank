@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Society App - Home</title>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      backdrop-filter: blur(5px); /* Polished screen effect */
+    }
+
+    .cover-image {
+      width: 100%;
+      height: auto;
+      max-height: 169px; /* Reduced by 8% from 184px (184 * 0.92) */
+      object-fit: cover;
+      margin-top: 10px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3); /* Enhanced 3D effect */
+      margin: 20px auto;
+      flex: 1 0 auto;
+      border: 1px solid #e0e7ff;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    #welcomeMsg {
+      text-align: center;
+      font-size: 20px;
+      color: #007AC1; /* Theme color */
+      margin-bottom: 10px;
+      font-weight: 600;
+      animation: pulse 2s infinite;
+    }
+
+    #memberNo {
+      text-align: center;
+      font-size: 14px;
+      color: #007AC1; /* Theme color */
+      margin-bottom: 20px;
+    }
+
+    #centerMsg {
+      text-align: center;
+      font-size: 16px;
+      color: #007AC1; /* Theme color */
+      margin: 15px 0;
+      font-weight: 500;
+    }
+
+    .amounts {
+      text-align: center;
+      margin: 20px 0;
+      background: #f0f9ff;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #c3e8ff;
+    }
+
+    .amounts p {
+      margin: 8px 0;
+      font-size: 16px;
+      color: #007AC1; /* Theme color */
+      font-weight: 500;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6mm; /* 6mm gap on both sides */
+      margin-top: 25px;
+      justify-items: center;
+    }
+
+    .card-item {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 8px; /* Reduced padding for 20% smaller box */
+      box-shadow: 0 10px 25px rgba(0, 122, 193, 0.2), inset 0 2px 5px rgba(255, 255, 255, 0.5); /* Enhanced 3D effect */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80px; /* 20% reduction from 100px (100 * 0.8) */
+      width: 100%;
+      border: 2px solid #007AC1; /* Theme color border outside box */
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .card-item:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 15px 35px rgba(0, 122, 193, 0.3), inset 0 4px 8px rgba(255, 255, 255, 0.7);
+    }
+
+    .icon-button {
+      font-size: 18px; /* Reduced for smaller box */
+      text-decoration: none;
+      color: #007AC1; /* Theme color */
+      margin-bottom: 6px;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .card-item:hover .icon-button {
+      color: #005f99; /* Darker shade */
+      transform: scale(1.15);
+    }
+
+    .icon-label {
+      display: block;
+      font-size: 10px; /* Reduced for smaller box */
+      color: #007AC1; /* Theme color */
+      font-weight: 500;
+      text-align: center;
+      width: 100%;
+    }
+
+    #error {
+      color: #dc2626;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .footer {
+      width: 100%;
+      background: #007AC1; /* Theme color */
+      color: #ffffff; /* White text */
+      text-align: center;
+      padding: 10px 0;
+      font-size: 12px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    .card-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
+    }
+
+    /* Popup Styles */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
+      z-index: 1000;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid #c3e8ff;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 122, 193, 0.3);
+      z-index: 999;
+    }
+    .popup .form-group {
+      margin-bottom: 15px;
+    }
+    .popup .form-group label {
+      display: block;
+      color: #007AC1; /* Theme color */
+      font-size: 14px;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .popup .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #c3e8ff;
+      border-radius: 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: #f0f9ff;
+    }
+    .popup button {
+      width: 100%;
+      padding: 10px;
+      background: #007AC1; /* Theme color */
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+    .popup button:hover {
+      background: #005f99; /* Darker shade */
+      transform: translateY(-2px);
+    }
+    #shareDetails p {
+      margin: 10px 0;
+      font-size: 16px;
+      color: #007AC1; /* Theme color */
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Cover Image -->
+  <img src="https://i.ibb.co/Z6Wd0pnW/poster-2025-07-28-055229.png" alt="Top Poster" class="cover-image" />
+
+  <div class="card-container">
+    <div class="card">
+      <div id="welcomeMsg">Loading...</div>
+      <div id="memberNo"></div>
+
+      <div id="centerMsg"></div>
+
+      <div class="amounts">
+        <p id="loanBalance">Loan Balance: --</p>
+        <!-- Removed shareAmount from here -->
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card-item">
+          <a href="loan-details.html" class="icon-button">📝</a>
+          <span class="icon-label">Loan Details</span>
+        </div>
+        <div class="card-item">
+          <a href="profile.html" class="icon-button">👤</a>
+          <span class="icon-label">My Profile</span>
+        </div>
+        <div class="card-item">
+          <a href="applications.html" class="icon-button">📩</a>
+          <span class="icon-label">Application Status</span>
+        </div>
+        <div class="card-item">
+          <a href="pas.html" class="icon-button">🔐</a>
+          <span class="icon-label">Change Password</span>
+        </div>
+        <div class="card-item">
+          <a href="msg.html" class="icon-button">📬</a>
+          <span class="icon-label">Messages</span>
+        </div>
+        <div class="card-item">
+          <a href="share.html" class="icon-button">💰</a>
+          <span class="icon-label">Shares</span>
+        </div>
+      </div>
+
+      <p id="error"></p>
+    </div>
+  </div>
+
+  <div class="footer">Powered by VT Soft 2025</div>
+
+  <!-- Password Change Popup (Removed as linked to pas.html) -->
+  <!-- Share Details Popup (Removed as linked to share.html) -->
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
+      authDomain: "probanker-2bce7.firebaseapp.com",
+      projectId: "probanker-2bce7",
+      storageBucket: "probanker-2bce7.appspot.com",
+      messagingSenderId: "27106244956",
+      appId: "1:27106244956:web:59792c9dc94aa8e5232999",
+      measurementId: "G-31138VCDFZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      const welcomeMsg = document.getElementById('welcomeMsg');
+      const memberNo = document.getElementById('memberNo');
+      const loanBalance = document.getElementById('loanBalance');
+      const centerMsg = document.getElementById('centerMsg');
+      const errorEl = document.getElementById('error');
+
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            welcomeMsg.innerText = `Hi, ${data.name || 'User'}`;
+            memberNo.innerText = `${data.memberNumber ? 'Member No: ' + data.memberNumber : ''}`;
+
+            const loansQuery = query(collection(db, 'loans'), where('userId', '==', user.uid));
+            const loansSnapshot = await getDocs(loansQuery);
+            let totalLoanBalance = 0;
+            if (!loansSnapshot.empty) {
+              loansSnapshot.forEach(doc => {
+                totalLoanBalance += doc.data().balance || 0;
+              });
+            }
+            loanBalance.innerText = `Loan Balance: ₹${totalLoanBalance.toFixed(2)}`;
+
+            const msgQuery = query(collection(db, 'messages'), where('userId', '==', user.uid));
+            const msgSnap = await getDocs(msgQuery);
+            if (!msgSnap.empty) {
+              const latestMsg = msgSnap.docs.sort((a, b) => new Date(b.data().createdAt) - new Date(a.data().createdAt))[0];
+              centerMsg.innerText = latestMsg.data().content || '';
+            } else {
+              centerMsg.innerText = '';
+            }
+
+          } else {
+            errorEl.innerText = 'User not found! Contact admin.';
+          }
+        } catch (error) {
+          errorEl.innerText = 'Error loading data: ' + error.message;
+        }
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
