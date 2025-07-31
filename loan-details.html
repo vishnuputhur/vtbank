@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Society App - Loan Details</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      max-width: 480px;
+      width: 100%;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #333;
+    }
+    p {
+      margin: 10px 0;
+      color: #555;
+      font-size: 16px;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #error {
+      color: red;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+    .loading {
+      font-style: italic;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Loan Details</h1>
+    <p id="loanInfo" class="loading">Loading loan details...</p>
+    <p id="balance">Balance: Loading...</p>
+    <p id="guarantors">Guarantors: Loading...</p>
+    <p id="interest">Interest: Loading...</p>
+    <p id="loanNumber">Loan Number: Loading...</p>
+    <p id="startDate">Start Date: Loading...</p>
+    <button onclick="window.location.href='home.html'">Back to Home</button>
+    <button id="logoutBtn">Logout</button>
+    <p id="error"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
+      authDomain: "probanker-2bce7.firebaseapp.com",
+      projectId: "probanker-2bce7",
+      storageBucket: "probanker-2bce7.firebasestorage.app",
+      messagingSenderId: "27106244956",
+      appId: "1:27106244956:web:59792c9dc94aa8e5232999",
+      measurementId: "G-31138VCDFZ"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      onAuthStateChanged(auth, async (user) => {
+        const loanInfoEl = document.getElementById('loanInfo');
+        const balanceEl = document.getElementById('balance');
+        const guarantorsEl = document.getElementById('guarantors');
+        const interestEl = document.getElementById('interest');
+        const loanNumberEl = document.getElementById('loanNumber');
+        const startDateEl = document.getElementById('startDate');
+        const errorEl = document.getElementById('error');
+
+        if (user) {
+          try {
+            const loanDoc = await getDoc(doc(db, 'loans', user.uid));
+            if (loanDoc.exists()) {
+              const data = loanDoc.data();
+              loanInfoEl.innerText = `Loan Details for ${user.email}`;
+              balanceEl.innerText = `Balance: ₹${data.balance || 'N/A'}`;
+              guarantorsEl.innerText = `Guarantors: ${data.guarantors ? data.guarantors.join(', ') : 'N/A'}`;
+              interestEl.innerText = `Interest: ${data.interest || 'N/A'}%`;
+              loanNumberEl.innerText = `Loan Number: ${data.loanNumber || 'N/A'}`;
+              startDateEl.innerText = `Start Date: ${data.startDate || 'N/A'}`;
+            } else {
+              errorEl.innerText = 'No loan details found!';
+            }
+          } catch (error) {
+            errorEl.innerText = 'Error loading loan details: ' + error.message;
+          }
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          window.location.href = 'index.html';
+        } catch (error) {
+          document.getElementById('error').innerText = 'Error logging out: ' + error.message;
+        }
+      });
+    } catch (error) {
+      document.getElementById('error').innerText = 'Firebase init failed: ' + error.message;
+    }
+  </script>
+</body>
+</html>
