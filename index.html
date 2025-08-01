@@ -23,11 +23,9 @@
       background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      overflow-x: hidden;
+      min-height: 100vh; /* full screen height */
+      overflow-y: auto;  /* enable scroll if overflow */
       backdrop-filter: blur(5px);
-      padding-bottom: 40px; /* Space for fixed footer */
     }
 
     .cover-image {
@@ -36,6 +34,7 @@
       max-height: 169px;
       object-fit: cover;
       margin-top: 10px;
+      margin-bottom: 15mm; /* fixed gap to card */
       animation: fadeIn 1s ease-in-out;
     }
 
@@ -46,47 +45,58 @@
       width: 100%;
       padding: 0 10px;
       box-sizing: border-box;
+      flex: 1; /* fill remaining space */
     }
 
     .card {
       background: #ffffff;
-      border-radius: 15px; /* Slightly smaller radius */
-      padding: 15px; /* Reduced padding */
+      border-radius: 15px;
+      padding: 15px;
       width: 90%;
-      max-width: 350px; /* Smaller max-width */
+      max-width: 350px;
       box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
-      margin: 15px auto; /* Reduced margin */
+      margin: 0 auto; /* no extra margin */
       border: 1px solid #e0e7ff;
       animation: fadeIn 1.5s ease-in-out;
+      max-height: calc(100vh - 200px); /* to avoid overflow with footer */
+      overflow-y: auto; /* scroll if needed */
+    }
+
+    .logo {
+      width: 30mm;
+      height: 30mm;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 10px auto;
     }
 
     h1 {
       text-align: center;
-      font-size: 18px; /* Smaller font */
+      font-size: 18px;
       color: #007AC1;
-      margin-bottom: 15px; /* Reduced margin */
+      margin-bottom: 15px;
       font-weight: 600;
       animation: pulse 2s infinite;
     }
 
     .form-group {
-      margin-bottom: 10px; /* Reduced margin */
+      margin-bottom: 10px;
     }
 
     .form-group label {
       display: block;
       color: #007AC1;
-      font-size: 12px; /* Smaller font */
-      margin-bottom: 3px; /* Reduced margin */
+      font-size: 12px;
+      margin-bottom: 3px;
       font-weight: 500;
     }
 
     .form-group input {
       width: 100%;
-      padding: 8px; /* Smaller padding */
+      padding: 8px;
       border: 1px solid #c3e8ff;
-      border-radius: 6px; /* Smaller radius */
-      font-size: 12px; /* Smaller font */
+      border-radius: 6px;
+      font-size: 12px;
       box-sizing: border-box;
       background: #f0f9ff;
     }
@@ -95,8 +105,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px; /* Reduced margin */
-      font-size: 12px; /* Smaller font */
+      margin-bottom: 10px;
+      font-size: 12px;
     }
 
     .options a {
@@ -112,12 +122,12 @@
 
     button {
       width: 100%;
-      padding: 8px; /* Smaller padding */
+      padding: 8px;
       background: #007AC1;
       color: #ffffff;
       border: none;
-      border-radius: 6px; /* Smaller radius */
-      font-size: 12px; /* Smaller font */
+      border-radius: 6px;
+      font-size: 12px;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.3s ease;
     }
@@ -129,9 +139,9 @@
 
     #error {
       color: #dc2626;
-      font-size: 12px; /* Smaller font */
+      font-size: 12px;
       text-align: center;
-      margin-top: 10px; /* Reduced margin */
+      margin-top: 10px;
     }
 
     .footer {
@@ -139,13 +149,13 @@
       background: #007AC1;
       color: #ffffff;
       text-align: center;
-      padding: 8px 0; /* Smaller padding */
-      font-size: 10px; /* Smaller font */
+      padding: 8px 0;
+      font-size: 10px;
       box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
       position: fixed;
       bottom: 0;
       left: 0;
-      z-index: 1000; /* Ensure footer is above content */
+      z-index: 1000;
       animation: fadeIn 1.5s ease-in-out;
     }
   </style>
@@ -156,6 +166,7 @@
 
   <div class="card-container">
     <div class="card">
+      <img src="https://i.ibb.co/qLk8zMWX/IMG-20241014-WA0121.jpg" alt="Logo" class="logo" />
       <h1>Login</h1>
       <div class="form-group">
         <label>Email:</label>
@@ -185,7 +196,7 @@
       apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
       authDomain: "probanker-2bce7.firebaseapp.com",
       projectId: "probanker-2bce7",
-      storageBucket: "probanker-2bce7.firebasestorage.app",
+      storageBucket: "probanker-2bce7",
       messagingSenderId: "27106244956",
       appId: "1:27106244956:web:59792c9dc94aa8e5232999",
       measurementId: "G-31138VCDFZ"
@@ -196,7 +207,6 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // Load saved credentials if "Remember Me" was checked
       document.addEventListener('DOMContentLoaded', () => {
         const savedEmail = localStorage.getItem('email');
         const savedPassword = localStorage.getItem('password');
