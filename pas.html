@@ -4,35 +4,59 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Society App - Change Password</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f0f4f8;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+      backdrop-filter: blur(5px);
+    }
+
+    .cover-image {
+      width: 100%;
+      height: auto;
+      max-height: 169px;
+      object-fit: cover;
+      margin-top: 10px;
+      margin-bottom: 15mm;
+      animation: fadeIn 1s ease-in-out;
+    }
+
     .container {
       background: #ffffff;
       padding: 20px;
       border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
       text-align: center;
       width: 90%;
       max-width: 400px;
-      border: 1px solid #c3e8ff;
+      border: 1px solid #e0e7ff;
+      margin: 0 auto;
+      animation: fadeIn 1.5s ease-in-out;
     }
+
     h2 {
       color: #007AC1;
       margin-bottom: 20px;
+      animation: fadeIn 1s ease-in-out;
     }
+
     .form-group {
       margin-bottom: 15px;
       text-align: left;
     }
+
     .form-group label {
       display: block;
       color: #007AC1;
@@ -40,6 +64,7 @@
       margin-bottom: 5px;
       font-weight: 500;
     }
+
     .form-group input {
       width: 100%;
       padding: 10px;
@@ -49,6 +74,7 @@
       box-sizing: border-box;
       background: #f0f9ff;
     }
+
     button {
       width: 100%;
       padding: 10px;
@@ -59,19 +85,39 @@
       font-size: 14px;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 122, 193, 0.2);
     }
+
     button:hover {
       background: #005f99;
       transform: translateY(-2px);
     }
+
     #error {
       color: #dc2626;
-      font-size: 14px;
+      font-size: 12px;
       margin-top: 10px;
+    }
+
+    .footer {
+      width: 100%;
+      background: #007AC1;
+      color: #ffffff;
+      text-align: center;
+      padding: 8px 0;
+      font-size: 10px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+      animation: fadeIn 1.5s ease-in-out;
     }
   </style>
 </head>
 <body>
+  <img src="https://i.ibb.co/Z6Wd0pnW/poster-2025-07-28-055229.png" alt="Top Poster" class="cover-image" />
+
   <div class="container">
     <h2>Change Password</h2>
     <div class="form-group">
@@ -89,6 +135,8 @@
     <button onclick="changePassword()">Update</button>
     <p id="error"></p>
   </div>
+
+  <div class="footer">Powered by VT Soft 2025</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
@@ -141,5 +189,6 @@
       }
     };
   </script>
+
 </body>
 </html>
