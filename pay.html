@@ -16,8 +16,8 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
-      padding-top: 90px; /* Reduced gap */
-      padding-bottom: 40px; /* Space for fixed footer */
+      padding-top: 90px;
+      padding-bottom: 40px;
     }
     .cover-image {
       width: 100%;
@@ -44,10 +44,10 @@
       width: 200px;
       height: 200px;
       margin: 15px auto;
-      display: none; /* Hidden by default */
+      display: none;
     }
-    .card .qr-show {
-      display: block; /* Show on generate */
+    .qr-show {
+      display: block !important;
     }
     h1 {
       margin-bottom: 15px;
@@ -79,7 +79,7 @@
     .or-text {
       font-size: 12px;
       color: #007AC1;
-      margin: 5px 0; /* Reduced gap between buttons */
+      margin: 5px 0;
     }
     button {
       width: 80%;
@@ -112,16 +112,16 @@
       z-index: 1000;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> <!-- QRCode library in head -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
   <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
 
   <div class="card">
     <h1>Pay by UPI</h1>
-    <div id="qrcode" class="qr"></div> <!-- Placeholder for QR code -->
-    <p id="memberNumberDisplay"></p>
-    <p class="calculated-amount" id="calculatedAmountDisplay"></p>
+    <div id="qrcode" class="qr"></div>
+    <p id="memberNumberDisplay">Member Number: 12345</p>
+    <p class="calculated-amount" id="calculatedAmountDisplay">Calculated Amount: ₹1000.00</p>
     <input type="number" id="editableAmount" placeholder="Enter Custom Amount" oninput="preventNegative()" />
     <button onclick="payNow()">Pay Now</button>
     <p class="or-text">or</p>
@@ -131,99 +131,8 @@
 
   <div class="footer">CSSCHCS | VTSoft | © 2025</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
-      authDomain: "probanker-2bce7.firebaseapp.com",
-      projectId: "probanker-2bce7",
-      storageBucket: "probanker-2bce7.appspot.com",
-      messagingSenderId: "27106244956",
-      appId: "1:27106244956:web:59792c9dc94aa8e5232999",
-      measurementId: "G-31138VCDFZ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
+  <script>
     let qrcode = null;
-    let currentUserId = null;
-
-    // Fetch user details on auth state change
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUserId = user.uid;
-        const userDoc = await getDoc(doc(db, 'users', currentUserId));
-        if (userDoc.exists()) {
-          const memberNumber = userDoc.data().memberNumber;
-          if (memberNumber) {
-            document.getElementById('memberNumberDisplay').textContent = `Member Number: ${memberNumber}`;
-            fetchLoanDetails(memberNumber);
-          } else {
-            document.getElementById('memberNumberDisplay').textContent = 'Member Number not found!';
-          }
-        } else {
-          document.getElementById('memberNumberDisplay').textContent = 'User data not found!';
-          window.location.href = 'home.html'; // Redirect if user data missing
-        }
-      } else {
-        window.location.href = 'home.html'; // Redirect to login if not authenticated
-      }
-    });
-
-    // Fetch loan details and calculate amount
-    async function fetchLoanDetails(memberNumber) {
-      clearFields();
-
-      try {
-        const usersSnapshot = await getDocs(query(collection(db, 'users'), where('memberNumber', '==', memberNumber)));
-        if (!usersSnapshot.empty) {
-          const userDoc = usersSnapshot.docs[0];
-          const userId = userDoc.id;
-          const loansSnapshot = await getDocs(query(collection(db, 'loans'), where('userId', '==', userId)));
-          if (!loansSnapshot.empty) {
-            const loanDoc = loansSnapshot.docs[0];
-            const loanData = loanDoc.data();
-
-            // Fetch last payment date
-            const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId), where('loanNumber', '==', loanDoc.id.split('_')[1]), orderBy('timestamp', 'desc'), limit(1)));
-            const lastPaymentDate = paymentsSnapshot.empty ? loanData.startDate : paymentsSnapshot.docs[0].data().date;
-
-            // Calculate days difference
-            const lastDate = new Date(lastPaymentDate);
-            const todayDate = new Date('2025-08-05'); // Current date
-            const daysDiff = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
-
-            // Interest calculation (12% annual, adjust as needed)
-            const interestRate = loanData.interest || 12;
-            const monthlyInterestRate = interestRate / 12 / 100;
-            const interestDue = loanData.balance * monthlyInterestRate * (daysDiff / 30);
-            const principalPerInstallment = loanData.amount / loanData.installments;
-            const principalDue = daysDiff >= 30 ? principalPerInstallment : 0;
-            const calculatedAmount = interestDue + principalPerInstallment + (loanData.interestDue || 0) + (loanData.principalDue || 0);
-
-            document.getElementById('calculatedAmountDisplay').textContent = `Calculated Amount: ₹${calculatedAmount.toFixed(2)}`;
-          } else {
-            document.getElementById('memberNumberDisplay').textContent += ' (No loan found!)';
-          }
-        } else {
-          document.getElementById('memberNumberDisplay').textContent = 'Member Number not found!';
-        }
-      } catch (error) {
-        document.getElementById('memberNumberDisplay').textContent = `Error: ${error.message}`;
-      }
-    }
-
-    function clearFields() {
-      document.getElementById('calculatedAmountDisplay').textContent = '';
-      document.getElementById('editableAmount').value = '';
-      if (qrcode) qrcode.clear();
-      document.getElementById('qrcode').classList.remove('qr-show');
-    }
 
     function preventNegative() {
       const editableAmount = document.getElementById('editableAmount');
@@ -232,43 +141,34 @@
       }
     }
 
-    // Generate QR code on button click
     function generateQRCode() {
       const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
       const amount = document.getElementById('editableAmount').value.trim();
       const upiID = '9495926316@okbizaxis';
       const payeeName = 'Cochinshipyard Staff Co.op House';
 
-      if (qrcode) qrcode.clear(); // Clear previous QR code if exists
-
       if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
         alert('Please enter a valid amount.');
-        document.getElementById('qrcode').classList.remove('qr-show');
         return;
       }
 
       const upiURL = `upi://pay?pa=${encodeURIComponent(upiID)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
-      try {
-        if (!qrcode) {
-          qrcode = new QRCode(document.getElementById('qrcode'), {
-            text: upiURL,
-            width: 200,
-            height: 200,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-          });
-        } else {
-          qrcode.makeCode(upiURL);
-        }
-        document.getElementById('qrcode').classList.add('qr-show');
-      } catch (error) {
-        console.error('QR Code generation error:', error);
-        alert('Failed to generate QR code. Check console for details.');
-      }
+
+      const qrElement = document.getElementById('qrcode');
+      qrElement.innerHTML = ''; // Clear previous QR
+
+      qrcode = new QRCode(qrElement, {
+        text: upiURL,
+        width: 200,
+        height: 200,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      qrElement.classList.add('qr-show');
     }
 
-    // Pay Now function with Member Number as remark
     function payNow() {
       const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
       const amount = document.getElementById('editableAmount').value.trim();
@@ -281,19 +181,21 @@
       }
 
       const upiURL = `upi://pay?pa=${encodeURIComponent(upiID)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
-      try {
-        window.location.href = upiURL;
-        console.log('Redirecting to:', upiURL); // Debug log
-      } catch (error) {
-        console.error('UPI redirect error:', error);
-        alert('UPI app not triggered. Ensure a UPI app is installed.');
-      }
+
+      // Try normal UPI link
+      window.location.href = upiURL;
+
+      // Optional fallback using intent (for Android)
+      setTimeout(() => {
+        window.location.href = `intent://${upiURL.replace('upi://', '')}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+      }, 1500);
     }
 
-    // Clear QR code on page load
+    // Clear QR on load
     window.onload = function() {
-      if (qrcode) qrcode.clear();
-      document.getElementById('qrcode').classList.remove('qr-show');
+      const qr = document.getElementById('qrcode');
+      qr.innerHTML = '';
+      qr.classList.remove('qr-show');
     };
   </script>
 </body>
