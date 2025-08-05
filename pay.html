@@ -60,6 +60,12 @@
       color: #007AC1;
       font-size: 14px;
     }
+    .calculated-amount {
+      font-size: 18px;
+      font-weight: bold;
+      color: #007AC1;
+      margin: 10px 0;
+    }
     input {
       width: 80%;
       padding: 10px;
@@ -70,13 +76,10 @@
       box-sizing: border-box;
       background: #f0f9ff;
     }
-    input[readonly] {
-      background: #e0e7ff;
-    }
     .or-text {
       font-size: 12px;
       color: #007AC1;
-      margin: 10px 0;
+      margin: 5px 0; /* Reduced gap between buttons */
     }
     button {
       width: 80%;
@@ -109,6 +112,7 @@
       z-index: 1000;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> <!-- QRCode library in head -->
 </head>
 <body>
   <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
@@ -117,8 +121,8 @@
     <h1>Pay by UPI</h1>
     <div id="qrcode" class="qr"></div> <!-- Placeholder for QR code -->
     <p id="memberNumberDisplay"></p>
-    <input type="number" id="calculatedAmount" placeholder="Calculated Amount" readonly />
-    <input type="number" id="editableAmount" placeholder="Edit Amount" oninput="updateEditableAmount()" />
+    <p class="calculated-amount" id="calculatedAmountDisplay"></p>
+    <input type="number" id="editableAmount" placeholder="Enter Custom Amount" oninput="preventNegative()" />
     <button onclick="payNow()">Pay Now</button>
     <p class="or-text">or</p>
     <button onclick="generateQRCode()">Generate QR Code</button>
@@ -131,9 +135,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-
-    // QRCode import (note: qrcodejs CDN might need adjustment, using direct import here)
-    const QRCode = window.QRCode; // Ensure QRCode is available globally after script load
 
     const firebaseConfig = {
       apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
@@ -176,7 +177,6 @@
 
     // Fetch loan details and calculate amount
     async function fetchLoanDetails(memberNumber) {
-      const errorEl = document.getElementById('error');
       clearFields();
 
       try {
@@ -206,8 +206,7 @@
             const principalDue = daysDiff >= 30 ? principalPerInstallment : 0;
             const calculatedAmount = interestDue + principalPerInstallment + (loanData.interestDue || 0) + (loanData.principalDue || 0);
 
-            document.getElementById('calculatedAmount').value = calculatedAmount.toFixed(2);
-            document.getElementById('editableAmount').value = calculatedAmount.toFixed(2);
+            document.getElementById('calculatedAmountDisplay').textContent = `Calculated Amount: ₹${calculatedAmount.toFixed(2)}`;
           } else {
             document.getElementById('memberNumberDisplay').textContent += ' (No loan found!)';
           }
@@ -220,17 +219,16 @@
     }
 
     function clearFields() {
-      const fields = ['calculatedAmount', 'editableAmount'];
-      fields.forEach(id => document.getElementById(id).value = '');
+      document.getElementById('calculatedAmountDisplay').textContent = '';
+      document.getElementById('editableAmount').value = '';
       if (qrcode) qrcode.clear();
       document.getElementById('qrcode').classList.remove('qr-show');
     }
 
-    function updateEditableAmount() {
-      const calculatedAmount = document.getElementById('calculatedAmount').value;
-      const editableAmount = document.getElementById('editableAmount').value;
-      if (parseFloat(editableAmount) < 0) {
-        document.getElementById('editableAmount').value = calculatedAmount || 0;
+    function preventNegative() {
+      const editableAmount = document.getElementById('editableAmount');
+      if (parseFloat(editableAmount.value) < 0) {
+        editableAmount.value = '';
       }
     }
 
@@ -244,7 +242,7 @@
       if (qrcode) qrcode.clear(); // Clear previous QR code if exists
 
       if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
-        alert('Please ensure member number is valid and amount is calculated.');
+        alert('Please enter a valid amount.');
         document.getElementById('qrcode').classList.remove('qr-show');
         return;
       }
@@ -273,7 +271,7 @@
       const payeeName = 'Cochinshipyard Staff Co.op House';
 
       if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
-        alert('Please ensure member number is valid and amount is calculated.');
+        alert('Please enter a valid amount.');
         return;
       }
 
@@ -287,6 +285,5 @@
       document.getElementById('qrcode').classList.remove('qr-show');
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> <!-- Load QRCode library -->
 </body>
 </html>
