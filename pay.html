@@ -5,20 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Society App - Pay QR</title>
   <style>
-    /* same CSS from your original */
-    body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #f0f4f8, #e0f2fe); display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; position: relative; padding-top: 90px; padding-bottom: 40px; }
-    .cover-image { width: 100%; height: auto; max-height: 169px; object-fit: cover; position: fixed; top: 0; left: 0; z-index: 1000; }
-    .card { background: #ffffff; border-radius: 20px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3); margin: 15px auto; border: 1px solid #e0e7ff; text-align: center; }
-    .card canvas.qr { width: 200px; height: 200px; margin: 15px auto; display: none; }
-    .qr-show { display: block !important; }
-    h1 { margin-bottom: 15px; font-size: 22px; color: #007AC1; font-weight: 600; }
-    p { margin: 5px 0; color: #007AC1; font-size: 14px; }
-    .calculated-amount { font-size: 18px; font-weight: bold; color: #007AC1; margin: 10px 0; }
-    input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #c3e8ff; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #f0f9ff; }
-    .or-text { font-size: 12px; color: #007AC1; margin: 5px 0; }
-    button { width: 80%; padding: 12px; margin: 8px 0; background: #007AC1; color: #ffffff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: background 0.3s ease, transform 0.3s ease; box-shadow: 0 4px 10px rgba(0, 122, 193, 0.2); }
-    button:hover { background: #005f99; transform: translateY(-2px); }
-    .footer { width: 100%; background: #007AC1; color: #ffffff; text-align: center; padding: 10px 0; font-size: 12px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); position: fixed; bottom: 0; left: 0; z-index: 1000; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      padding-top: 90px;
+      padding-bottom: 40px;
+    }
+    .cover-image {
+      width: 100%;
+      height: auto;
+      max-height: 169px;
+      object-fit: cover;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
+      margin: 15px auto;
+      border: 1px solid #e0e7ff;
+      text-align: center;
+    }
+    .card canvas.qr {
+      width: 200px;
+      height: 200px;
+      margin: 15px auto;
+      display: none;
+    }
+    .qr-show {
+      display: block !important;
+    }
+    h1 {
+      margin-bottom: 15px;
+      font-size: 22px;
+      color: #007AC1;
+      font-weight: 600;
+    }
+    p {
+      margin: 5px 0;
+      color: #007AC1;
+      font-size: 14px;
+    }
+    .due-amount {
+      font-size: 18px;
+      font-weight: bold;
+      color: #007AC1;
+      margin: 10px 0;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #c3e8ff;
+      border-radius: 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: #f0f9ff;
+    }
+    .or-text {
+      font-size: 12px;
+      color: #007AC1;
+      margin: 5px 0;
+    }
+    button {
+      width: 80%;
+      padding: 12px;
+      margin: 8px 0;
+      background: #007AC1;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 122, 193, 0.2);
+    }
+    button:hover {
+      background: #005f99;
+      transform: translateY(-2px);
+    }
+    .footer {
+      width: 100%;
+      background: #007AC1;
+      color: #ffffff;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 12px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
@@ -29,8 +121,8 @@
     <h1>Pay by UPI</h1>
     <div id="qrcode" class="qr"></div>
     <p id="memberNumberDisplay"></p>
-    <p class="calculated-amount" id="calculatedAmountDisplay"></p>
-    <input type="number" id="editableAmount" placeholder="Enter Custom Amount" oninput="preventNegative()" />
+    <p class="due-amount" id="dueAmountDisplay"></p>
+    <input type="number" id="editableAmount" placeholder="Enter Custom Amount (Optional)" oninput="preventNegative()" />
     <button onclick="payNow()">Pay Now</button>
     <p class="or-text">or</p>
     <button onclick="generateQRCode()">Generate QR Code</button>
@@ -89,7 +181,6 @@
             const loanDoc = loansSnapshot.docs[0];
             const loanData = loanDoc.data();
             const loanId = loanDoc.id;
-
             const loanNumber = loanId.includes('_') ? loanId.split('_')[1] : loanId;
 
             const paymentsSnapshot = await getDocs(query(
@@ -106,18 +197,17 @@
 
             const lastDate = new Date(lastPaymentDate);
             const todayDate = new Date('2025-08-05');
-            const daysDiff = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+            const daysDiff = Math.max(0, Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24))); // Ensure non-negative days
 
+            const principalPerInstallment = loanData.amount / loanData.installments || 0;
             const interestRate = loanData.interest || 12;
             const monthlyInterestRate = interestRate / 12 / 100;
-            const interestDue = loanData.balance * monthlyInterestRate * (daysDiff / 30);
-            const principalPerInstallment = loanData.amount / loanData.installments;
-            const principalDue = daysDiff >= 30 ? principalPerInstallment : 0;
+            const interestDueDays = Math.max(0, loanData.balance * monthlyInterestRate * (daysDiff / 30)); // Non-negative interest
+            const interestDueExtra = loanData.interestDue || 0;
+            const principalDueExtra = loanData.principalDue || 0;
 
-            const extraDue = (loanData.interestDue || 0) + (loanData.principalDue || 0);
-            const calculatedAmount = interestDue + principalDue + extraDue;
-
-            document.getElementById('calculatedAmountDisplay').textContent = `Calculated Amount: ₹${calculatedAmount.toFixed(2)}`;
+            const dueAmount = principalPerInstallment + interestDueDays + interestDueExtra + principalDueExtra;
+            document.getElementById('dueAmountDisplay').textContent = `Due Amount: ₹${dueAmount.toFixed(2)}`;
           } else {
             document.getElementById('memberNumberDisplay').textContent += ' (No loan found)';
           }
@@ -130,7 +220,7 @@
     }
 
     function clearFields() {
-      document.getElementById('calculatedAmountDisplay').textContent = '';
+      document.getElementById('dueAmountDisplay').textContent = '';
       document.getElementById('editableAmount').value = '';
       document.getElementById('qrcode').innerHTML = '';
       document.getElementById('qrcode').classList.remove('qr-show');
@@ -143,16 +233,19 @@
 
     window.generateQRCode = function () {
       const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
-      const amount = document.getElementById('editableAmount').value.trim();
-      const upiID = '9495926316@okbizaxis';
-      const payeeName = 'Cochinshipyard Staff Co.op House';
+      const dueAmountDisplay = document.getElementById('dueAmountDisplay').textContent.replace('Due Amount: ₹', '').trim();
+      const editableAmount = document.getElementById('editableAmount').value.trim() || dueAmountDisplay;
+      const amount = parseFloat(editableAmount) || 0;
 
-      if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
-        alert('Please enter a valid amount.');
+      if (!memberNumber || amount <= 0) {
+        alert('Please ensure a valid amount is available.');
         return;
       }
 
-      const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
+      const upiID = '9495926316@okbizaxis';
+      const payeeName = 'Cochinshipyard Staff Co.op House';
+      const upiURL = `upi://pay?pa=${encodeURIComponent(upiID)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
+
       const qrEl = document.getElementById('qrcode');
       qrEl.innerHTML = '';
       qrcode = new QRCode(qrEl, {
@@ -164,26 +257,34 @@
         correctLevel: QRCode.CorrectLevel.H
       });
       qrEl.classList.add('qr-show');
-    }
+    };
 
     window.payNow = function () {
       const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
-      const amount = document.getElementById('editableAmount').value.trim();
-      const upiID = '9495926316@okbizaxis';
-      const payeeName = 'Cochinshipyard Staff Co.op House';
+      const dueAmountDisplay = document.getElementById('dueAmountDisplay').textContent.replace('Due Amount: ₹', '').trim();
+      const editableAmount = document.getElementById('editableAmount').value.trim() || dueAmountDisplay;
+      const amount = parseFloat(editableAmount) || 0;
 
-      if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
-        alert('Please enter a valid amount.');
+      if (!memberNumber || amount <= 0) {
+        alert('Please ensure a valid amount is available.');
         return;
       }
 
-      const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
-      window.location.href = upiURL;
+      const upiID = '9495926316@okbizaxis';
+      const payeeName = 'Cochinshipyard Staff Co.op House';
+      const upiURL = `upi://pay?pa=${encodeURIComponent(upiID)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
 
-      setTimeout(() => {
-        window.location.href = `intent://${upiURL.replace('upi://', '')}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-      }, 1500);
-    }
+      try {
+        window.location.href = upiURL;
+        console.log('Redirecting to:', upiURL);
+        setTimeout(() => {
+          window.location.href = `intent://${upiURL.replace('upi://', '')}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+        }, 1000);
+      } catch (error) {
+        console.error('UPI redirect error:', error);
+        alert('UPI app not triggered. Ensure a UPI app is installed.');
+      }
+    };
   </script>
 </body>
 </html>
