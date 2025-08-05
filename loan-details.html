@@ -91,19 +91,23 @@
       overflow: hidden;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
     .transaction-table th, .transaction-table td {
       padding: 8px;
       text-align: left;
       border-bottom: 1px solid #ddd;
     }
+
     .transaction-table th {
       background: #3498db;
       color: #fff;
       font-size: 13px;
     }
+
     .transaction-table td {
       font-size: 12px;
     }
+
     .transaction-table tr:hover {
       background: #f5f6fa;
     }
@@ -161,6 +165,24 @@
         <p><strong>Surety 1:</strong> <span id="surety1">N/A</span></p>
         <p><strong>Surety 2:</strong> <span id="surety2">N/A</span></p>
         <p><strong>Next Due Amount:</strong> <span id="nextDueAmount">₹0</span></p>
+      </div>
+
+      <!-- 💳 Pay Now Button -->
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="pay.html" style="
+          background-color: #007AC1;
+          color: white;
+          padding: 10px 20px;
+          border-radius: 25px;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 14px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          display: inline-block;
+          transition: transform 0.2s ease-in-out;
+        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+          💰 Pay Your Installment
+        </a>
       </div>
 
       <div class="transaction-table">
@@ -233,7 +255,7 @@
       try {
         const loansSnapshot = await getDocs(query(collection(db, 'loans'), where('userId', '==', userId)));
         if (!loansSnapshot.empty) {
-          const loanDoc = loansSnapshot.docs[0]; // Assuming single active loan for simplicity
+          const loanDoc = loansSnapshot.docs[0];
           const data = loanDoc.data();
           document.getElementById('loanAmount').textContent = `₹${data.amount || 0}`;
           document.getElementById('loanStartDate').textContent = data.startDate || 'N/A';
@@ -244,7 +266,6 @@
           document.getElementById('surety1').textContent = data.guarantors[0] || 'N/A';
           document.getElementById('surety2').textContent = data.guarantors[1] || 'N/A';
 
-          // Calculate Next Due Amount
           const lastPaymentDate = await getLastPaymentDate(userId, data.loanNumber);
           const daysDiff = Math.floor((new Date() - new Date(lastPaymentDate || data.startDate)) / (1000 * 60 * 60 * 24));
           const interestAccrued = (data.balance * data.interest * daysDiff) / (100 * 365);
@@ -252,16 +273,6 @@
           const oldPrincipalDue = data.balance > data.amount ? data.balance - data.amount : 0;
           const nextDueAmount = (interestAccrued + data.interestDue + installmentAmount + oldPrincipalDue).toFixed(2);
           document.getElementById('nextDueAmount').textContent = `₹${nextDueAmount}`;
-        } else {
-          document.getElementById('loanAmount').textContent = '₹0';
-          document.getElementById('loanStartDate').textContent = 'N/A';
-          document.getElementById('loanInterest').textContent = '0%';
-          document.getElementById('principalDue').textContent = '₹0';
-          document.getElementById('interestDue').textContent = '₹0';
-          document.getElementById('outstandingAmount').textContent = '₹0';
-          document.getElementById('surety1').textContent = 'N/A';
-          document.getElementById('surety2').textContent = 'N/A';
-          document.getElementById('nextDueAmount').textContent = '₹0';
         }
       } catch (error) {
         console.error('Error loading loan details:', error);
