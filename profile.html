@@ -55,7 +55,7 @@
       background: #ffffff;
       border-radius: 15px;
       padding: 20px; /* Keep original padding */
-      width: 90%; /* As requested */
+      width: 85%; /* Changed to 85% as requested */
       max-width: 350px; /* Keep original max-width */
       box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
       margin: 2px auto; /* Minimal gap from top image */
@@ -142,6 +142,7 @@
       <p id="pincode">Pincode: Loading...</p>
       <p id="phone">Phone: Loading...</p>
       <button onclick="window.location.href='index.html'">Back to Home</button>
+      <button id="logoutBtn">Logout</button>
       <p id="error"></p>
     </div>
   </div>
@@ -150,7 +151,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -198,6 +199,17 @@
           }
         } else {
           window.location.href = 'login.html';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          localStorage.removeItem('email');
+          localStorage.removeItem('password');
+          window.location.href = 'login.html';
+        } catch (error) {
+          document.getElementById('error').innerText = 'Error logging out: ' + error.message;
         }
       });
     } catch (error) {
