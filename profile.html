@@ -16,14 +16,15 @@
       100% { transform: scale(1); }
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
+      height: 100%;
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
+      align-items: center;
       overflow-x: hidden;
       backdrop-filter: blur(5px);
     }
@@ -33,29 +34,31 @@
       height: auto;
       max-height: 169px;
       object-fit: cover;
-      margin-top: 10px;
-      margin-bottom: 15mm;
+      margin-top: 15.12px; /* 4mm gap ≈ 15.12px (1mm = 3.78px) */
       animation: fadeIn 1s ease-in-out;
+      flex-shrink: 0;
     }
 
     .card-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 90%;
+      justify-content: flex-start; /* Start just below image */
+      width: 100%;
       padding: 0 10px;
       box-sizing: border-box;
-      flex: 1;
+      flex-grow: 1;
+      padding-bottom: 40px; /* Space for fixed footer */
     }
 
     .card {
       background: #ffffff;
       border-radius: 15px;
-      padding: 20px;
-      width: 85%;
-      max-width: 350px;
+      padding: 20px; /* Keep original padding */
+      width: 90%; /* As requested */
+      max-width: 350px; /* Keep original max-width */
       box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
-      margin: 0 auto;
+      margin: 2px auto; /* Minimal gap from top image */
       border: 1px solid #e0e7ff;
       animation: fadeIn 1.5s ease-in-out;
       text-align: center;
@@ -120,6 +123,7 @@
       left: 0;
       z-index: 1000;
       animation: fadeIn 1.5s ease-in-out;
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -133,21 +137,20 @@
       <p id="userInfo" class="loading">Loading profile...</p>
       <p id="email">Email: Loading...</p>
       <p id="memberNumber">Member Number: Loading...</p>
+      <p id="cslCode">CSL Code No: Loading...</p>
       <p id="address">Address: Loading...</p>
       <p id="pincode">Pincode: Loading...</p>
       <p id="phone">Phone: Loading...</p>
-      <br><br>
       <button onclick="window.location.href='index.html'">Back to Home</button>
-      
       <p id="error"></p>
     </div>
   </div>
 
-  <div class="footer">Powered by VT Soft 2025</div>
+  <div class="footer">CSCHCS | VTSoft | © 2025</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -169,6 +172,7 @@
         const userInfoEl = document.getElementById('userInfo');
         const emailEl = document.getElementById('email');
         const memberNumberEl = document.getElementById('memberNumber');
+        const cslCodeEl = document.getElementById('cslCode');
         const addressEl = document.getElementById('address');
         const pincodeEl = document.getElementById('pincode');
         const phoneEl = document.getElementById('phone');
@@ -179,9 +183,10 @@
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
               const data = userDoc.data();
-              userInfoEl.innerText = `Welcome, ${data.name || user.email}`;
+              userInfoEl.innerText = `Name: ${data.name || user.email}`;
               emailEl.innerText = `Email: ${data.email || user.email}`;
               memberNumberEl.innerText = `Member Number: ${data.memberNumber || 'N/A'}`;
+              cslCodeEl.innerText = `CSL Code No: ${data.cslCode || 'N/A'}`;
               addressEl.innerText = `Address: ${data.address || 'N/A'}`;
               pincodeEl.innerText = `Pincode: ${data.pincode || 'N/A'}`;
               phoneEl.innerText = `Phone: ${data.phone || 'N/A'}`;
@@ -193,18 +198,6 @@
           }
         } else {
           window.location.href = 'login.html';
-        }
-      });
-
-      document.getElementById('logoutBtn').addEventListener('click', async () => {
-        try {
-          await signOut(auth);
-          // Clear local storage credentials
-          localStorage.removeItem('email');
-          localStorage.removeItem('password');
-          window.location.href = 'login.html'; // Redirect to login page
-        } catch (error) {
-          document.getElementById('error').innerText = 'Error logging out: ' + error.message;
         }
       });
     } catch (error) {
