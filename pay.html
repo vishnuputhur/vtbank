@@ -16,7 +16,7 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
-      padding-top: 90px; /* Reduced gap to half of 179px */
+      padding-top: 90px; /* Reduced gap */
       padding-bottom: 40px; /* Space for fixed footer */
     }
     .cover-image {
@@ -116,7 +116,6 @@
   <div class="card">
     <h1>Pay by UPI</h1>
     <div id="qrcode" class="qr"></div> <!-- Placeholder for QR code -->
-    <p>UPI ID: 9495926316@okbizaxis</p>
     <p id="memberNumberDisplay"></p>
     <input type="number" id="calculatedAmount" placeholder="Calculated Amount" readonly />
     <input type="number" id="editableAmount" placeholder="Edit Amount" oninput="updateEditableAmount()" />
@@ -132,7 +131,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-    import QRCode from "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+
+    // QRCode import (note: qrcodejs CDN might need adjustment, using direct import here)
+    const QRCode = window.QRCode; // Ensure QRCode is available globally after script load
 
     const firebaseConfig = {
       apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
@@ -158,8 +159,15 @@
         const userDoc = await getDoc(doc(db, 'users', currentUserId));
         if (userDoc.exists()) {
           const memberNumber = userDoc.data().memberNumber;
-          document.getElementById('memberNumberDisplay').textContent = `Member Number: ${memberNumber}`;
-          fetchLoanDetails(memberNumber);
+          if (memberNumber) {
+            document.getElementById('memberNumberDisplay').textContent = `Member Number: ${memberNumber}`;
+            fetchLoanDetails(memberNumber);
+          } else {
+            document.getElementById('memberNumberDisplay').textContent = 'Member Number not found!';
+          }
+        } else {
+          document.getElementById('memberNumberDisplay').textContent = 'User data not found!';
+          window.location.href = 'home.html'; // Redirect if user data missing
         }
       } else {
         window.location.href = 'home.html'; // Redirect to login if not authenticated
@@ -201,13 +209,13 @@
             document.getElementById('calculatedAmount').value = calculatedAmount.toFixed(2);
             document.getElementById('editableAmount').value = calculatedAmount.toFixed(2);
           } else {
-            errorEl.innerText = 'No loan found for this member!';
+            document.getElementById('memberNumberDisplay').textContent += ' (No loan found!)';
           }
         } else {
-          errorEl.innerText = 'User not found!';
+          document.getElementById('memberNumberDisplay').textContent = 'Member Number not found!';
         }
       } catch (error) {
-        errorEl.innerText = 'Error fetching loan details: ' + error.message;
+        document.getElementById('memberNumberDisplay').textContent = `Error: ${error.message}`;
       }
     }
 
@@ -222,8 +230,63 @@
       const calculatedAmount = document.getElementById('calculatedAmount').value;
       const editableAmount = document.getElementById('editableAmount').value;
       if (parseFloat(editableAmount) < 0) {
-        document.getElementById('editableAmount').value = calculatedAmount;
+        document.getElementById('editableAmount').value = calculatedAmount || 0;
       }
     }
 
-    //
+    // Generate QR code on button click
+    function generateQRCode() {
+      const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
+      const amount = document.getElementById('editableAmount').value.trim();
+      const upiID = '9495926316@okbizaxis';
+      const payeeName = 'Cochinshipyard Staff Co.op House';
+
+      if (qrcode) qrcode.clear(); // Clear previous QR code if exists
+
+      if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
+        alert('Please ensure member number is valid and amount is calculated.');
+        document.getElementById('qrcode').classList.remove('qr-show');
+        return;
+      }
+
+      const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
+      if (!qrcode) {
+        qrcode = new QRCode(document.getElementById('qrcode'), {
+          text: upiURL,
+          width: 200,
+          height: 200,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } else {
+        qrcode.makeCode(upiURL);
+      }
+      document.getElementById('qrcode').classList.add('qr-show');
+    }
+
+    // Pay Now function with Member Number as remark
+    function payNow() {
+      const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
+      const amount = document.getElementById('editableAmount').value.trim();
+      const upiID = '9495926316@okbizaxis';
+      const payeeName = 'Cochinshipyard Staff Co.op House';
+
+      if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
+        alert('Please ensure member number is valid and amount is calculated.');
+        return;
+      }
+
+      const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
+      window.location.href = upiURL;
+    }
+
+    // Clear QR code on page load
+    window.onload = function() {
+      if (qrcode) qrcode.clear();
+      document.getElementById('qrcode').classList.remove('qr-show');
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> <!-- Load QRCode library -->
+</body>
+</html>
