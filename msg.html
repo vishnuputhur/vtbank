@@ -16,18 +16,17 @@
       100% { transform: scale(1); }
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
+      height: 100%;
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
       overflow-x: hidden;
       backdrop-filter: blur(5px);
-      padding-bottom: 40px; /* Space for fixed footer */
     }
 
     .cover-image {
@@ -37,17 +36,19 @@
       object-fit: cover;
       margin-top: 15.12px; /* 4mm gap ≈ 15.12px (1mm = 3.78px) */
       animation: fadeIn 1s ease-in-out;
+      flex-shrink: 0;
     }
 
     .card-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start; /* Start just below image */
+      justify-content: flex-start; /* Start immediately below image */
       width: 100%;
       padding: 0 10px;
       box-sizing: border-box;
-      flex-grow: 1; /* Take available space */
+      flex-grow: 1; /* Take remaining space */
+      padding-bottom: 40px; /* Space for fixed footer */
     }
 
     .card {
@@ -57,7 +58,7 @@
       width: 90%;
       max-width: 320px; /* Compact size */
       box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
-      margin: 5px auto; /* Reduced gap (halved from 10px) */
+      margin: 2px auto; /* Minimal gap from top image */
       border: 1px solid #e0e7ff;
       animation: fadeIn 1.5s ease-in-out;
     }
@@ -145,12 +146,13 @@
       left: 0;
       z-index: 1000;
       animation: fadeIn 1.5s ease-in-out;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
   <!-- Top Cover Image -->
-  <img src="https://i.ibb.co/Z6Wd0pnW/poster-2025-07-28-055229.png" alt="Top Poster" class="cover-image" />
+  <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
 
   <div class="card-container">
     <div class="card">
