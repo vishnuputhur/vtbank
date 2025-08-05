@@ -25,7 +25,8 @@
       align-items: center;
       min-height: 100vh;
       overflow-x: hidden;
-      backdrop-filter: blur(5px);
+      padding-top: 4mm; /* for top gap */
+      box-sizing: border-box;
     }
 
     .cover-image {
@@ -33,8 +34,23 @@
       height: auto;
       max-height: 169px;
       object-fit: cover;
-      margin-top: 10px;
       animation: fadeIn 1s ease-in-out;
+      position: fixed;
+      top: 4mm;
+      left: 0;
+      z-index: 10;
+      background: white;
+    }
+
+    .card-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
+      margin-top: 190px; /* to avoid overlap with fixed image */
     }
 
     .card {
@@ -127,18 +143,10 @@
       padding: 10px 0;
       font-size: 12px;
       box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-      flex-shrink: 0;
-      animation: fadeIn 1.5s ease-in-out;
-    }
-
-    .card-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0 10px;
-      box-sizing: border-box;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
     }
 
     @media (min-width: 768px) {
@@ -164,7 +172,6 @@
         <p><strong>Outstanding Amount:</strong> <span id="outstandingAmount">₹0</span></p>
         <p><strong>Surety 1:</strong> <span id="surety1">N/A</span></p>
         <p><strong>Surety 2:</strong> <span id="surety2">N/A</span></p>
-        <p><strong>Next Due Amount:</strong> <span id="nextDueAmount">₹0</span></p>
       </div>
 
       <!-- 💳 Pay Now Button -->
@@ -265,26 +272,10 @@
           document.getElementById('outstandingAmount').textContent = `₹${data.balance || 0}`;
           document.getElementById('surety1').textContent = data.guarantors[0] || 'N/A';
           document.getElementById('surety2').textContent = data.guarantors[1] || 'N/A';
-
-          const lastPaymentDate = await getLastPaymentDate(userId, data.loanNumber);
-          const daysDiff = Math.floor((new Date() - new Date(lastPaymentDate || data.startDate)) / (1000 * 60 * 60 * 24));
-          const interestAccrued = (data.balance * data.interest * daysDiff) / (100 * 365);
-          const installmentAmount = data.amount / data.installments;
-          const oldPrincipalDue = data.balance > data.amount ? data.balance - data.amount : 0;
-          const nextDueAmount = (interestAccrued + data.interestDue + installmentAmount + oldPrincipalDue).toFixed(2);
-          document.getElementById('nextDueAmount').textContent = `₹${nextDueAmount}`;
         }
       } catch (error) {
         console.error('Error loading loan details:', error);
       }
-    }
-
-    async function getLastPaymentDate(userId, loanNumber) {
-      const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId), where('loanNumber', '==', loanNumber)));
-      if (!paymentsSnapshot.empty) {
-        return paymentsSnapshot.docs.sort((a, b) => new Date(b.data().timestamp) - new Date(a.data().timestamp))[0].data().timestamp;
-      }
-      return null;
     }
 
     async function loadTransactions(userId, memberNumber) {
