@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Society App - Messages</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      backdrop-filter: blur(5px);
+      padding-bottom: 40px; /* Space for fixed footer */
+    }
+
+    .cover-image {
+      width: 100%;
+      height: auto;
+      max-height: 169px;
+      object-fit: cover;
+      margin-top: 15.12px; /* 4mm gap ≈ 15.12px (1mm = 3.78px) */
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .card-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center; /* Center vertically */
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
+      flex-grow: 1; /* Take available space */
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 15px;
+      padding: 12px; /* Compact padding */
+      width: 90%;
+      max-width: 320px; /* Compact size */
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
+      margin: 10px auto; /* Reduced margin */
+      border: 1px solid #e0e7ff;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 16px; /* Compact font */
+      color: #007AC1;
+      margin-bottom: 10px; /* Reduced margin */
+      font-weight: 600;
+      animation: pulse 2s infinite;
+    }
+
+    .messages {
+      text-align: left;
+      margin: 8px 0; /* Reduced margin */
+      background: #f0f9ff;
+      padding: 8px; /* Compact padding */
+      border-radius: 8px; /* Smaller radius */
+      border: 1px solid #c3e8ff;
+    }
+
+    .message-item {
+      margin-bottom: 10px; /* Space between messages */
+    }
+
+    .message-item:last-child {
+      margin-bottom: 0; /* No margin for last message */
+    }
+
+    .message-title {
+      font-size: 14px; /* Slightly larger */
+      font-weight: 600;
+      color: #007AC1;
+      margin: 0;
+    }
+
+    .message-content {
+      font-size: 13px; /* Compact font */
+      color: #007AC1;
+      margin: 2px 0 0 0;
+      font-weight: 400;
+    }
+
+    button {
+      width: 100%;
+      padding: 8px; /* Compact padding */
+      background: #007AC1;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px; /* Smaller radius */
+      font-size: 12px; /* Compact font */
+      cursor: pointer;
+      margin: 8px 0; /* Reduced margin */
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+
+    button:hover {
+      background: #005f99;
+      transform: translateY(-2px);
+    }
+
+    #error {
+      color: #dc2626;
+      font-size: 11px; /* Compact font */
+      text-align: center;
+      margin-top: 8px; /* Reduced margin */
+    }
+
+    .loading {
+      font-style: italic;
+      color: #007AC1;
+    }
+
+    .footer {
+      width: 100%;
+      background: #007AC1;
+      color: #ffffff;
+      text-align: center;
+      padding: 8px 0; /* Compact padding */
+      font-size: 10px; /* Compact font */
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Cover Image -->
+  <img src="https://i.ibb.co/Z6Wd0pnW/poster-2025-07-28-055229.png" alt="Top Poster" class="cover-image" />
+
+  <div class="card-container">
+    <div class="card">
+      <h1>Messages</h1>
+      <div class="messages" id="messages">
+        <p class="loading">Loading messages...</p>
+      </div>
+      <button onclick="window.location.href='index.html'">Back to Home</button>
+      <p id="error"></p>
+    </div>
+  </div>
+
+  <div class="footer">Powered by VT Soft 2025</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
+      authDomain: "probanker-2bce7.firebaseapp.com",
+      projectId: "probanker-2bce7",
+      storageBucket: "probanker-2bce7.appspot.com",
+      messagingSenderId: "27106244956",
+      appId: "1:27106244956:web:59792c9dc94aa8e5232999",
+      measurementId: "G-31138VCDFZ"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      onAuthStateChanged(auth, async (user) => {
+        const messagesEl = document.getElementById('messages');
+        const errorEl = document.getElementById('error');
+
+        if (user) {
+          try {
+            const msgQuery = query(collection(db, 'messages'), where('userId', '==', user.uid));
+            const msgSnapshot = await getDocs(msgQuery);
+
+            if (!msgSnapshot.empty) {
+              messagesEl.innerHTML = ''; // Clear loading message
+              const messages = msgSnapshot.docs
+                .sort((a, b) => new Date(b.data().createdAt) - new Date(a.data().createdAt)); // Sort by date, newest first
+              messages.forEach(doc => {
+                const data = doc.data();
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-item';
+                messageDiv.innerHTML = `
+                  <p class="message-title">${data.title || 'No Title'}</p>
+                  <p class="message-content">${data.content || 'No Content'}</p>
+                `;
+                messagesEl.appendChild(messageDiv);
+              });
+            } else {
+              messagesEl.innerHTML = '<p>No messages found!</p>';
+            }
+          } catch (error) {
+            errorEl.innerText = 'Error loading messages: ' + error.message;
+          }
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+    } catch (error) {
+      document.getElementById('error').innerText = 'Firebase init failed: ' + error.message;
+    }
+  </script>
+</body>
+</html>
