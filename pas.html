@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Society App - Pay QR</title>
+  <title>Society App - Change Password</title>
   <style>
     body {
       margin: 0;
@@ -40,15 +40,6 @@
       border: 1px solid #e0e7ff;
       text-align: center;
     }
-    .card canvas.qr {
-      width: 200px;
-      height: 200px;
-      margin: 15px auto;
-      display: none; /* Hidden by default */
-    }
-    .card .qr-show {
-      display: block; /* Show on generate */
-    }
     h1 {
       margin-bottom: 15px;
       font-size: 22px;
@@ -60,12 +51,6 @@
       color: #007AC1;
       font-size: 14px;
     }
-    .calculated-amount {
-      font-size: 18px;
-      font-weight: bold;
-      color: #007AC1;
-      margin: 10px 0;
-    }
     input {
       width: 80%;
       padding: 10px;
@@ -75,11 +60,6 @@
       font-size: 14px;
       box-sizing: border-box;
       background: #f0f9ff;
-    }
-    .or-text {
-      font-size: 12px;
-      color: #007AC1;
-      margin: 5px 0; /* Reduced gap between buttons */
     }
     button {
       width: 80%;
@@ -111,30 +91,32 @@
       left: 0;
       z-index: 1000;
     }
+    #message {
+      color: #e74c3c;
+      font-size: 12px;
+      margin-top: 10px;
+    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> <!-- QRCode library in head -->
 </head>
 <body>
   <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
 
   <div class="card">
-    <h1>Pay by UPI</h1>
-    <div id="qrcode" class="qr"></div> <!-- Placeholder for QR code -->
-    <p id="memberNumberDisplay"></p>
-    <p class="calculated-amount" id="calculatedAmountDisplay"></p>
-    <input type="number" id="editableAmount" placeholder="Enter Custom Amount" oninput="preventNegative()" />
-    <button onclick="payNow()">Pay Now</button>
-    <p class="or-text">or</p>
-    <button onclick="generateQRCode()">Generate QR Code</button>
+    <h1>Change Password</h1>
+    <p>Update your password securely.</p>
+    <input type="password" id="currentPassword" placeholder="Current Password" />
+    <input type="password" id="newPassword" placeholder="New Password" />
+    <input type="password" id="confirmPassword" placeholder="Confirm New Password" />
+    <button onclick="changePassword()">Save Changes</button>
     <button onclick="window.location.href='home.html'">Back to Home</button>
+    <p id="message"></p>
   </div>
 
   <div class="footer">CSSCHCS | VTSoft | © 2025</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getAuth, reauthenticateWithCredential, updatePassword, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
@@ -148,142 +130,54 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
 
-    let qrcode = null;
-    let currentUserId = null;
+    // Change password function
+    function changePassword() {
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const message = document.getElementById('message');
 
-    // Fetch user details on auth state change
-    onAuthStateChanged(auth, async (user) => {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        message.textContent = 'All fields are required!';
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        message.textContent = 'New passwords do not match!';
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        message.textContent = 'Password must be at least 6 characters!';
+        return;
+      }
+
+      const user = auth.currentUser;
       if (user) {
-        currentUserId = user.uid;
-        const userDoc = await getDoc(doc(db, 'users', currentUserId));
-        if (userDoc.exists()) {
-          const memberNumber = userDoc.data().memberNumber;
-          if (memberNumber) {
-            document.getElementById('memberNumberDisplay').textContent = `Member Number: ${memberNumber}`;
-            fetchLoanDetails(memberNumber);
-          } else {
-            document.getElementById('memberNumberDisplay').textContent = 'Member Number not found!';
-          }
-        } else {
-          document.getElementById('memberNumberDisplay').textContent = 'User data not found!';
-          window.location.href = 'home.html'; // Redirect if user data missing
-        }
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        reauthenticateWithCredential(user, credential)
+          .then(() => {
+            updatePassword(user, newPassword)
+              .then(() => {
+                message.textContent = 'Password updated successfully!';
+                message.style.color = '#2ecc71'; // Green for success
+                setTimeout(() => {
+                  window.location.href = 'home.html';
+                }, 2000); // Redirect after 2 seconds
+              })
+              .catch((error) => {
+                message.textContent = 'Error updating password: ' + error.message;
+              });
+          })
+          .catch((error) => {
+            message.textContent = 'Current password is incorrect or error: ' + error.message;
+          });
       } else {
-        window.location.href = 'home.html'; // Redirect to login if not authenticated
-      }
-    });
-
-    // Fetch loan details and calculate amount
-    async function fetchLoanDetails(memberNumber) {
-      clearFields();
-
-      try {
-        const usersSnapshot = await getDocs(query(collection(db, 'users'), where('memberNumber', '==', memberNumber)));
-        if (!usersSnapshot.empty) {
-          const userDoc = usersSnapshot.docs[0];
-          const userId = userDoc.id;
-          const loansSnapshot = await getDocs(query(collection(db, 'loans'), where('userId', '==', userId)));
-          if (!loansSnapshot.empty) {
-            const loanDoc = loansSnapshot.docs[0];
-            const loanData = loanDoc.data();
-
-            // Fetch last payment date
-            const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId), where('loanNumber', '==', loanDoc.id.split('_')[1]), orderBy('timestamp', 'desc'), limit(1)));
-            const lastPaymentDate = paymentsSnapshot.empty ? loanData.startDate : paymentsSnapshot.docs[0].data().date;
-
-            // Calculate days difference
-            const lastDate = new Date(lastPaymentDate);
-            const todayDate = new Date('2025-08-05'); // Current date
-            const daysDiff = Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24));
-
-            // Interest calculation (12% annual, adjust as needed)
-            const interestRate = loanData.interest || 12;
-            const monthlyInterestRate = interestRate / 12 / 100;
-            const interestDue = loanData.balance * monthlyInterestRate * (daysDiff / 30);
-            const principalPerInstallment = loanData.amount / loanData.installments;
-            const principalDue = daysDiff >= 30 ? principalPerInstallment : 0;
-            const calculatedAmount = interestDue + principalPerInstallment + (loanData.interestDue || 0) + (loanData.principalDue || 0);
-
-            document.getElementById('calculatedAmountDisplay').textContent = `Calculated Amount: ₹${calculatedAmount.toFixed(2)}`;
-          } else {
-            document.getElementById('memberNumberDisplay').textContent += ' (No loan found!)';
-          }
-        } else {
-          document.getElementById('memberNumberDisplay').textContent = 'Member Number not found!';
-        }
-      } catch (error) {
-        document.getElementById('memberNumberDisplay').textContent = `Error: ${error.message}`;
+        message.textContent = 'No user logged in!';
+        window.location.href = 'home.html';
       }
     }
-
-    function clearFields() {
-      document.getElementById('calculatedAmountDisplay').textContent = '';
-      document.getElementById('editableAmount').value = '';
-      if (qrcode) qrcode.clear();
-      document.getElementById('qrcode').classList.remove('qr-show');
-    }
-
-    function preventNegative() {
-      const editableAmount = document.getElementById('editableAmount');
-      if (parseFloat(editableAmount.value) < 0) {
-        editableAmount.value = '';
-      }
-    }
-
-    // Generate QR code on button click
-    function generateQRCode() {
-      const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
-      const amount = document.getElementById('editableAmount').value.trim();
-      const upiID = '9495926316@okbizaxis';
-      const payeeName = 'Cochinshipyard Staff Co.op House';
-
-      if (qrcode) qrcode.clear(); // Clear previous QR code if exists
-
-      if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
-        alert('Please enter a valid amount.');
-        document.getElementById('qrcode').classList.remove('qr-show');
-        return;
-      }
-
-      const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
-      if (!qrcode) {
-        qrcode = new QRCode(document.getElementById('qrcode'), {
-          text: upiURL,
-          width: 200,
-          height: 200,
-          colorDark: '#000000',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.H
-        });
-      } else {
-        qrcode.makeCode(upiURL);
-      }
-      document.getElementById('qrcode').classList.add('qr-show');
-    }
-
-    // Pay Now function with Member Number as remark
-    function payNow() {
-      const memberNumber = document.getElementById('memberNumberDisplay').textContent.replace('Member Number: ', '').trim();
-      const amount = document.getElementById('editableAmount').value.trim();
-      const upiID = '9495926316@okbizaxis';
-      const payeeName = 'Cochinshipyard Staff Co.op House';
-
-      if (!memberNumber || !amount || isNaN(amount) || Number(amount) <= 0) {
-        alert('Please enter a valid amount.');
-        return;
-      }
-
-      const upiURL = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
-      window.location.href = upiURL;
-    }
-
-    // Clear QR code on page load
-    window.onload = function() {
-      if (qrcode) qrcode.clear();
-      document.getElementById('qrcode').classList.remove('qr-show');
-    };
   </script>
 </body>
 </html>
