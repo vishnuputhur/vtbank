@@ -25,9 +25,8 @@
       align-items: center;
       min-height: 100vh;
       overflow-x: hidden;
-      padding-top: 4mm;
+      padding-top: 4mm; /* for top gap */
       box-sizing: border-box;
-      position: relative;
     }
 
     .cover-image {
@@ -51,9 +50,7 @@
       width: 100%;
       padding: 0 10px;
       box-sizing: border-box;
-      margin-top: 80px;
-      position: relative;
-      z-index: 1;
+      margin-top: 80px; /* to avoid overlap with fixed image */
     }
 
     .card {
@@ -67,8 +64,6 @@
       flex: 1 0 auto;
       border: 1px solid #e0e7ff;
       animation: fadeIn 1.5s ease-in-out;
-      position: relative;
-      z-index: 1;
     }
 
     #welcomeMsg {
@@ -154,7 +149,7 @@
       z-index: 100;
     }
 
-    /* PDF Receipt Styles (Double border moved here) */
+    /* PDF Receipt Styles */
     .pdf-content {
       display: none;
     }
@@ -275,7 +270,7 @@
         <p><strong>Surety 2:</strong> <span id="surety2">N/A</span></p>
       </div>
 
-      <!-- Pay Now Button -->
+      <!-- 💳 Pay Now Button -->
       <div style="text-align: center; margin-top: 20px;">
         <a href="pay.html" style="
           background-color: #007AC1;
@@ -359,161 +354,145 @@
       measurementId: "G-31138VCDFZ"
     };
 
-    try {
-      const app = initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully');
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-      onAuthStateChanged(auth, async (user) => {
-        console.log('Auth state changed, user:', user ? user.uid : 'null');
-        const welcomeMsg = document.getElementById('welcomeMsg');
-        const memberNo = document.getElementById('memberNo');
-        const errorEl = document.getElementById('error');
+    onAuthStateChanged(auth, async (user) => {
+      const welcomeMsg = document.getElementById('welcomeMsg');
+      const memberNo = document.getElementById('memberNo');
+      const errorEl = document.getElementById('error');
 
-        if (user) {
-          try {
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            console.log('User doc exists:', userDoc.exists());
-            if (userDoc.exists()) {
-              const data = userDoc.data();
-              welcomeMsg.innerText = `Hi, ${data.name || 'User'}`;
-              memberNo.innerText = `Member No: ${data.memberNumber || 'N/A'}`;
-              await loadLoanDetails(user.uid);
-              await loadTransactions(user.uid);
-            } else {
-              errorEl.innerText = 'User not found in Firestore! Contact admin.';
-              console.log('User document not found for UID:', user.uid);
-            }
-          } catch (error) {
-            console.error('Error fetching user data:', error);
-            errorEl.innerText = 'Error loading user data: ' + error.message;
-          }
-        } else {
-          window.location.href = 'login.html'; // Redirect if not authenticated
-        }
-      });
-
-      async function loadLoanDetails(userId) {
+      if (user) {
         try {
-          console.log('Fetching loan details for user:', userId);
-          const loansSnapshot = await getDocs(query(collection(db, 'loans'), where('userId', '==', userId)));
-          if (!loansSnapshot.empty) {
-            const loanDoc = loansSnapshot.docs[0];
-            const data = loanDoc.data();
-            console.log('Loan data fetched:', data);
-            document.getElementById('loanAmount').textContent = `₹${data.amount || 0}`;
-            document.getElementById('loanStartDate').textContent = data.startDate || 'N/A';
-            document.getElementById('loanInterest').textContent = `${data.interest || 0}%`;
-            document.getElementById('principalDue').textContent = `₹${data.balance > data.amount ? (data.balance - data.amount).toFixed(2) : '0'}`;
-            document.getElementById('interestDue').textContent = `₹${data.interestDue || 0}`;
-            document.getElementById('outstandingAmount').textContent = `₹${data.balance || 0}`;
-            document.getElementById('surety1').textContent = data.guarantors?.[0] || 'N/A';
-            document.getElementById('surety2').textContent = data.guarantors?.[1] || 'N/A';
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            welcomeMsg.innerText = `Hi, ${data.name || 'User'}`;
+            memberNo.innerText = `${data.memberNumber ? 'Member No: ' + data.memberNumber : ''}`;
+            await loadLoanDetails(user.uid, data.memberNumber);
+            await loadTransactions(user.uid, data.memberNumber);
           } else {
-            console.log('No loan data found for user:', userId);
+            errorEl.innerText = 'User not found! Contact admin.';
           }
         } catch (error) {
-          console.error('Error loading loan details:', error);
+          errorEl.innerText = 'Error loading data: ' + error.message;
+          console.error('Error in auth state change:', error);
         }
+      } else {
+        window.location.href = 'index.html';
       }
+    });
 
-      async function loadTransactions(userId) {
-        try {
-          console.log('Fetching transactions for user:', userId);
-          const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId)));
-          const transactionBody = document.getElementById('transactionBody');
-          transactionBody.innerHTML = '';
-          if (!paymentsSnapshot.empty) {
-            paymentsSnapshot.forEach(doc => {
-              const data = doc.data();
-              console.log('Transaction data:', data);
-              const row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${data.date || 'N/A'}</td>
-                <td>₹${data.principal || 0}</td>
-                <td>₹${data.interest || 0}</td>
-                <td>₹${data.newBalance || 0}</td>
-                <td>${data.receiptNumber || 'N/A'}</td>
-                <td><button onclick="generatePDF('${data.receiptNumber}', '${data.date || 'N/A'}', ${data.principal || 0}, ${data.interest || 0}, ${data.newBalance || 0}, '${data.receiptNumber || 'N/A'}')">PDF Print</button></td>
-              `;
-              transactionBody.appendChild(row);
-            });
-          } else {
+    async function loadLoanDetails(userId, memberNumber) {
+      try {
+        const loansSnapshot = await getDocs(query(collection(db, 'loans'), where('userId', '==', userId)));
+        if (!loansSnapshot.empty) {
+          const loanDoc = loansSnapshot.docs[0];
+          const data = loanDoc.data();
+          document.getElementById('loanAmount').textContent = `₹${data.amount || 0}`;
+          document.getElementById('loanStartDate').textContent = data.startDate || 'N/A';
+          document.getElementById('loanInterest').textContent = `${data.interest || 0}%`;
+          document.getElementById('principalDue').textContent = `₹${data.balance > data.amount ? (data.balance - data.amount).toFixed(2) : '0'}`;
+          document.getElementById('interestDue').textContent = `₹${data.interestDue || 0}`;
+          document.getElementById('outstandingAmount').textContent = `₹${data.balance || 0}`;
+          document.getElementById('surety1').textContent = data.guarantors[0] || 'N/A';
+          document.getElementById('surety2').textContent = data.guarantors[1] || 'N/A';
+        }
+      } catch (error) {
+        console.error('Error loading loan details:', error);
+      }
+    }
+
+    async function loadTransactions(userId, memberNumber) {
+      try {
+        const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId)));
+        const transactionBody = document.getElementById('transactionBody');
+        transactionBody.innerHTML = '';
+        if (!paymentsSnapshot.empty) {
+          paymentsSnapshot.forEach(doc => {
+            const data = doc.data();
             const row = document.createElement('tr');
-            row.innerHTML = '<td colspan="6">No transactions found.</td>';
+            row.innerHTML = `
+              <td>${data.date || 'N/A'}</td>
+              <td>₹${data.principal || 0}</td>
+              <td>₹${data.interest || 0}</td>
+              <td>₹${data.newBalance || 0}</td>
+              <td>${data.receiptNumber || 'N/A'}</td>
+              <td><button onclick="generatePDF('${data.receiptNumber}', '${data.date || 'N/A'}', ${data.principal || 0}, ${data.interest || 0}, ${data.newBalance || 0}, '${data.receiptNumber || 'N/A'}')">PDF Print</button></td>
+            `;
             transactionBody.appendChild(row);
-            console.log('No transactions found for user:', userId);
-          }
-        } catch (error) {
-          console.error('Error loading transactions:', error);
-        }
-      }
-
-      function generatePDF(receiptNumber, date, principal, interest, newBalance, receiptNum) {
-        const { jsPDF } = window.jspdf;
-        if (!jsPDF) {
-          console.error('jsPDF not loaded');
-          alert('PDF generation failed. Check console for details.');
-          return;
-        }
-        const doc = new jsPDF();
-        const pdfContent = document.getElementById('pdfContent');
-        pdfContent.style.display = 'block'; // Temporarily show for rendering
-        document.getElementById('pdfDate').textContent = `Date: ${new Date().toLocaleDateString()}`;
-        document.getElementById('pdfReceiptNo').textContent = `Receipt No: ${receiptNumber}`;
-        document.getElementById('pdfTransactionDate').textContent = date;
-        document.getElementById('pdfPrincipal').textContent = `₹${principal}`;
-        document.getElementById('pdfInterest').textContent = `₹${interest}`;
-        document.getElementById('pdfNewBalance').textContent = `₹${newBalance}`;
-        document.getElementById('pdfReceiptNumber').textContent = receiptNum;
-
-        loadRecentTransactionsForPDF().then(() => {
-          doc.html(pdfContent, {
-            callback: function (doc) {
-              doc.save(`Receipt_${receiptNumber}.pdf`);
-              pdfContent.style.display = 'none'; // Hide after generation
-            },
-            x: 10,
-            y: 10,
-            html2canvas: { scale: 0.8 }
           });
-        }).catch(error => {
-          console.error('Error in PDF generation:', error);
-          pdfContent.style.display = 'none';
-        });
+        } else {
+          const row = document.createElement('tr');
+          row.innerHTML = '<td colspan="6">No transactions found.</td>';
+          transactionBody.appendChild(row);
+        }
+      } catch (error) {
+        console.error('Error loading transactions:', error);
       }
+    }
 
-      async function loadRecentTransactionsForPDF() {
-        const user = getAuth().currentUser;
-        if (user) {
-          try {
-            const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', user.uid)));
-            const pdfRecentTransactions = document.getElementById('pdfRecentTransactions');
-            pdfRecentTransactions.innerHTML = '';
-            const recentPayments = [];
-            paymentsSnapshot.forEach(doc => recentPayments.push({ id: doc.id, ...doc.data() }));
-            recentPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
-            const last10 = recentPayments.slice(0, 10);
-            last10.forEach(data => {
-              const row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${data.date || 'N/A'}</td>
-                <td>₹${data.principal || 0}</td>
-                <td>₹${data.interest || 0}</td>
-                <td>₹${data.newBalance || 0}</td>
-                <td>${data.receiptNumber || 'N/A'}</td>
-              `;
-              pdfRecentTransactions.appendChild(row);
-            });
-          } catch (error) {
-            console.error('Error loading recent transactions for PDF:', error);
-          }
+    function generatePDF(receiptNumber, date, principal, interest, newBalance, receiptNum) {
+      const { jsPDF } = window.jspdf;
+      if (!jsPDF) {
+        console.error('jsPDF not loaded');
+        alert('PDF generation failed. Check console for details.');
+        return;
+      }
+      const doc = new jsPDF();
+      const pdfContent = document.getElementById('pdfContent');
+      pdfContent.style.display = 'block'; // Temporarily show for rendering
+      document.getElementById('pdfDate').textContent = `Date: ${new Date().toLocaleDateString()}`;
+      document.getElementById('pdfReceiptNo').textContent = `Receipt No: ${receiptNumber}`;
+      document.getElementById('pdfTransactionDate').textContent = date;
+      document.getElementById('pdfPrincipal').textContent = `₹${principal}`;
+      document.getElementById('pdfInterest').textContent = `₹${interest}`;
+      document.getElementById('pdfNewBalance').textContent = `₹${newBalance}`;
+      document.getElementById('pdfReceiptNumber').textContent = receiptNum;
+
+      loadRecentTransactionsForPDF().then(() => {
+        doc.html(pdfContent, {
+          callback: function (doc) {
+            doc.save(`Receipt_${receiptNumber}.pdf`);
+            pdfContent.style.display = 'none'; // Hide after generation
+          },
+          x: 10,
+          y: 10,
+          html2canvas: { scale: 0.8 }
+        });
+      }).catch(error => {
+        console.error('Error in PDF generation:', error);
+        pdfContent.style.display = 'none';
+      });
+    }
+
+    async function loadRecentTransactionsForPDF() {
+      const user = getAuth().currentUser;
+      if (user) {
+        try {
+          const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', user.uid)));
+          const pdfRecentTransactions = document.getElementById('pdfRecentTransactions');
+          pdfRecentTransactions.innerHTML = '';
+          const recentPayments = [];
+          paymentsSnapshot.forEach(doc => recentPayments.push({ id: doc.id, ...doc.data() }));
+          recentPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+          const last10 = recentPayments.slice(0, 10);
+          last10.forEach(data => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${data.date || 'N/A'}</td>
+              <td>₹${data.principal || 0}</td>
+              <td>₹${data.interest || 0}</td>
+              <td>₹${data.newBalance || 0}</td>
+              <td>${data.receiptNumber || 'N/A'}</td>
+            `;
+            pdfRecentTransactions.appendChild(row);
+          });
+        } catch (error) {
+          console.error('Error loading recent transactions for PDF:', error);
         }
       }
-    } catch (error) {
-      console.error('Firebase initialization error:', error);
-      document.getElementById('error').innerText = 'Firebase init failed: ' + error.message;
     }
   </script>
 </body>
