@@ -25,8 +25,35 @@
       align-items: center;
       min-height: 100vh;
       overflow-x: hidden;
-      padding-top: 4mm; /* for top gap */
+      padding-top: 4mm;
       box-sizing: border-box;
+      position: relative;
+    }
+
+    /* Double border box with 8mm inset and 1mm gap */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 8mm;
+      left: 8mm;
+      right: 8mm;
+      bottom: 8mm;
+      border: 2px solid #007AC1; /* Page border color */
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 10mm;
+      left: 10mm;
+      right: 10mm;
+      bottom: 10mm;
+      border: 2px solid #007AC1; /* Inner border color */
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: 0;
     }
 
     .cover-image {
@@ -50,7 +77,9 @@
       width: 100%;
       padding: 0 10px;
       box-sizing: border-box;
-      margin-top: 80px; /* to avoid overlap with fixed image */
+      margin-top: 80px;
+      position: relative;
+      z-index: 1;
     }
 
     .card {
@@ -64,6 +93,8 @@
       flex: 1 0 auto;
       border: 1px solid #e0e7ff;
       animation: fadeIn 1.5s ease-in-out;
+      position: relative;
+      z-index: 1;
     }
 
     #welcomeMsg {
@@ -149,6 +180,78 @@
       z-index: 100;
     }
 
+    /* PDF Receipt Styles */
+    .pdf-content {
+      display: none;
+    }
+    .pdf-header {
+      text-align: center;
+      color: #007AC1;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .pdf-subheader {
+      text-align: center;
+      font-size: 10px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .pdf-receipt-header {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #007AC1;
+      margin-bottom: 10px;
+    }
+    .pdf-details {
+      margin: 10px 0;
+      font-size: 12px;
+      color: #007AC1;
+    }
+    .pdf-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    .pdf-table th, .pdf-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .pdf-table th {
+      background: #3498db;
+      color: #fff;
+    }
+    .recent-transactions-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .recent-transactions-table th, .recent-transactions-table td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+      font-size: 10px;
+    }
+    .recent-transactions-table th {
+      background: #3498db;
+      color: #fff;
+    }
+    .signature-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #007AC1;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 8px;
+      color: #777;
+      margin-top: 20px;
+    }
+
     @media (min-width: 768px) {
       .transaction-table th, .transaction-table td { font-size: 14px; padding: 10px; }
     }
@@ -156,7 +259,7 @@
 </head>
 <body>
   <!-- Top Cover Image -->
-    <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
+  <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
 
   <div class="card-container">
     <div class="card">
@@ -174,7 +277,7 @@
         <p><strong>Surety 2:</strong> <span id="surety2">N/A</span></p>
       </div>
 
-      <!-- 💳 Pay Now Button -->
+      <!-- Pay Now Button -->
       <div style="text-align: center; margin-top: 20px;">
         <a href="pay.html" style="
           background-color: #007AC1;
@@ -202,6 +305,7 @@
               <th>Interest</th>
               <th>New Balance</th>
               <th>Receipt #</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="transactionBody"></tbody>
@@ -214,10 +318,38 @@
 
   <div class="footer">Powered by VT Soft 2025</div>
 
+  <!-- Hidden PDF Content Template -->
+  <div id="pdfContent" class="pdf-content">
+    <div class="pdf-header">Cochin Shipyard Staff Co-operative House Construction Society E 346</div>
+    <div class="pdf-subheader">Ravipuram, Email: shipyardhousingsocity@gmail.com | csshcs@yahoo.com</div>
+    <div class="pdf-receipt-header">Receipt</div>
+    <div class="pdf-details" id="pdfDate"></div>
+    <div class="pdf-details" id="pdfReceiptNo"></div>
+    <table class="pdf-table">
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Date</td><td id="pdfTransactionDate"></td></td>
+      <tr><td>Principal</td><td id="pdfPrincipal"></td></tr>
+      <tr><td>Interest</td><td id="pdfInterest"></td></tr>
+      <tr><td>New Balance</td><td id="pdfNewBalance"></td></tr>
+      <tr><td>Receipt #</td><td id="pdfReceiptNumber"></td></tr>
+    </table>
+    <table class="recent-transactions-table">
+      <tr><th colspan="5">Recent Transactions</th></tr>
+      <tr><th>Date</th><th>Principal</th><th>Interest</th><th>New Balance</th><th>Receipt #</th></tr>
+      <tbody id="pdfRecentTransactions"></tbody>
+    </table>
+    <div class="signature-row">
+      <span>Secretary</span>
+      <span>Treasurer</span>
+    </div>
+    <div class="footer-note">This is a computer-generated printout.</div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { jsPDF } from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
@@ -293,16 +425,73 @@
               <td>₹${data.interest || 0}</td>
               <td>₹${data.newBalance || 0}</td>
               <td>${data.receiptNumber || 'N/A'}</td>
+              <td><button onclick="generatePDF('${data.receiptNumber}', '${data.date || 'N/A'}', ${data.principal || 0}, ${data.interest || 0}, ${data.newBalance || 0}, '${data.receiptNumber || 'N/A'}')">PDF Print</button></td>
             `;
             transactionBody.appendChild(row);
           });
         } else {
           const row = document.createElement('tr');
-          row.innerHTML = '<td colspan="5">No transactions found.</td>';
+          row.innerHTML = '<td colspan="6">No transactions found.</td>';
           transactionBody.appendChild(row);
         }
       } catch (error) {
         console.error('Error loading transactions:', error);
+      }
+    }
+
+    function generatePDF(receiptNumber, date, principal, interest, newBalance, receiptNum) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const pdfContent = document.getElementById('pdfContent');
+
+      // Update PDF content
+      document.getElementById('pdfDate').textContent = `Date: ${new Date().toLocaleDateString()}`;
+      document.getElementById('pdfReceiptNo').textContent = `Receipt No: ${receiptNumber}`;
+      document.getElementById('pdfTransactionDate').textContent = date;
+      document.getElementById('pdfPrincipal').textContent = `₹${principal}`;
+      document.getElementById('pdfInterest').textContent = `₹${interest}`;
+      document.getElementById('pdfNewBalance').textContent = `₹${newBalance}`;
+      document.getElementById('pdfReceiptNumber').textContent = receiptNum;
+
+      // Load recent transactions (last 10)
+      loadRecentTransactionsForPDF().then(() => {
+        // Convert HTML to PDF
+        doc.html(pdfContent, {
+          callback: function (doc) {
+            doc.save(`Receipt_${receiptNumber}.pdf`);
+          },
+          x: 10,
+          y: 10,
+          html2canvas: { scale: 0.8 }
+        });
+      });
+    }
+
+    async function loadRecentTransactionsForPDF() {
+      const user = getAuth().currentUser;
+      if (user) {
+        try {
+          const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', user.uid)));
+          const pdfRecentTransactions = document.getElementById('pdfRecentTransactions');
+          pdfRecentTransactions.innerHTML = '';
+          const recentPayments = [];
+          paymentsSnapshot.forEach(doc => recentPayments.push({ id: doc.id, ...doc.data() }));
+          recentPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+          const last10 = recentPayments.slice(0, 10);
+          last10.forEach(data => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${data.date || 'N/A'}</td>
+              <td>₹${data.principal || 0}</td>
+              <td>₹${data.interest || 0}</td>
+              <td>₹${data.newBalance || 0}</td>
+              <td>${data.receiptNumber || 'N/A'}</td>
+            `;
+            pdfRecentTransactions.appendChild(row);
+          });
+        } catch (error) {
+          console.error('Error loading recent transactions for PDF:', error);
+        }
       }
     }
   </script>
