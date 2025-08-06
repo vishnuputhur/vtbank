@@ -30,32 +30,6 @@
       position: relative;
     }
 
-    /* Double border box with 8mm inset and 1mm gap */
-    body::after {
-      content: '';
-      position: fixed;
-      top: 8mm;
-      left: 8mm;
-      right: 8mm;
-      bottom: 8mm;
-      border: 2px solid #007AC1;
-      border-radius: 10px;
-      pointer-events: none;
-      z-index: 0;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      top: 10mm;
-      left: 10mm;
-      right: 10mm;
-      bottom: 10mm;
-      border: 2px solid #007AC1;
-      border-radius: 10px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
     .cover-image {
       width: 100%;
       height: auto;
@@ -180,9 +154,33 @@
       z-index: 100;
     }
 
-    /* PDF Receipt Styles */
+    /* PDF Receipt Styles (Double border moved here) */
     .pdf-content {
-      display: none; /* Ensure it's hidden until generated */
+      display: none;
+    }
+    .pdf-content::after {
+      content: '';
+      position: absolute;
+      top: 8mm;
+      left: 8mm;
+      right: 8mm;
+      bottom: 8mm;
+      border: 2px solid #007AC1;
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .pdf-content::before {
+      content: '';
+      position: absolute;
+      top: 10mm;
+      left: 10mm;
+      right: 10mm;
+      bottom: 10mm;
+      border: 2px solid #007AC1;
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: -1;
     }
     .pdf-header {
       text-align: center;
@@ -368,7 +366,7 @@
       const db = getFirestore(app);
 
       onAuthStateChanged(auth, async (user) => {
-        console.log('Auth state changed, user:', user);
+        console.log('Auth state changed, user:', user ? user.uid : 'null');
         const welcomeMsg = document.getElementById('welcomeMsg');
         const memberNo = document.getElementById('memberNo');
         const errorEl = document.getElementById('error');
@@ -376,57 +374,60 @@
         if (user) {
           try {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
-            console.log('User doc fetched:', userDoc.exists());
+            console.log('User doc exists:', userDoc.exists());
             if (userDoc.exists()) {
               const data = userDoc.data();
               welcomeMsg.innerText = `Hi, ${data.name || 'User'}`;
-              memberNo.innerText = `${data.memberNumber ? 'Member No: ' + data.memberNumber : ''}`;
-              await loadLoanDetails(user.uid, data.memberNumber);
-              await loadTransactions(user.uid, data.memberNumber);
+              memberNo.innerText = `Member No: ${data.memberNumber || 'N/A'}`;
+              await loadLoanDetails(user.uid);
+              await loadTransactions(user.uid);
             } else {
-              errorEl.innerText = 'User not found! Contact admin.';
+              errorEl.innerText = 'User not found in Firestore! Contact admin.';
+              console.log('User document not found for UID:', user.uid);
             }
           } catch (error) {
-            console.error('Error in auth state change:', error);
-            errorEl.innerText = 'Error loading data: ' + error.message;
+            console.error('Error fetching user data:', error);
+            errorEl.innerText = 'Error loading user data: ' + error.message;
           }
         } else {
-          window.location.href = 'login.html'; // Redirect to login if not authenticated
+          window.location.href = 'login.html'; // Redirect if not authenticated
         }
       });
 
-      async function loadLoanDetails(userId, memberNumber) {
+      async function loadLoanDetails(userId) {
         try {
-          console.log('Loading loan details for user:', userId);
+          console.log('Fetching loan details for user:', userId);
           const loansSnapshot = await getDocs(query(collection(db, 'loans'), where('userId', '==', userId)));
           if (!loansSnapshot.empty) {
             const loanDoc = loansSnapshot.docs[0];
             const data = loanDoc.data();
+            console.log('Loan data fetched:', data);
             document.getElementById('loanAmount').textContent = `₹${data.amount || 0}`;
             document.getElementById('loanStartDate').textContent = data.startDate || 'N/A';
             document.getElementById('loanInterest').textContent = `${data.interest || 0}%`;
             document.getElementById('principalDue').textContent = `₹${data.balance > data.amount ? (data.balance - data.amount).toFixed(2) : '0'}`;
             document.getElementById('interestDue').textContent = `₹${data.interestDue || 0}`;
             document.getElementById('outstandingAmount').textContent = `₹${data.balance || 0}`;
-            document.getElementById('surety1').textContent = data.guarantors[0] || 'N/A';
-            document.getElementById('surety2').textContent = data.guarantors[1] || 'N/A';
+            document.getElementById('surety1').textContent = data.guarantors?.[0] || 'N/A';
+            document.getElementById('surety2').textContent = data.guarantors?.[1] || 'N/A';
           } else {
-            console.log('No loan data found');
+            console.log('No loan data found for user:', userId);
           }
         } catch (error) {
           console.error('Error loading loan details:', error);
         }
       }
 
-      async function loadTransactions(userId, memberNumber) {
+      async function loadTransactions(userId) {
         try {
-          console.log('Loading transactions for user:', userId);
+          console.log('Fetching transactions for user:', userId);
           const paymentsSnapshot = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId)));
           const transactionBody = document.getElementById('transactionBody');
           transactionBody.innerHTML = '';
           if (!paymentsSnapshot.empty) {
             paymentsSnapshot.forEach(doc => {
               const data = doc.data();
+              console.log('Transaction data:', data);
               const row = document.createElement('tr');
               row.innerHTML = `
                 <td>${data.date || 'N/A'}</td>
@@ -442,6 +443,7 @@
             const row = document.createElement('tr');
             row.innerHTML = '<td colspan="6">No transactions found.</td>';
             transactionBody.appendChild(row);
+            console.log('No transactions found for user:', userId);
           }
         } catch (error) {
           console.error('Error loading transactions:', error);
@@ -452,13 +454,11 @@
         const { jsPDF } = window.jspdf;
         if (!jsPDF) {
           console.error('jsPDF not loaded');
-          alert('PDF generation failed. Please check console for details.');
+          alert('PDF generation failed. Check console for details.');
           return;
         }
         const doc = new jsPDF();
         const pdfContent = document.getElementById('pdfContent');
-
-        // Ensure pdfContent is hidden
         pdfContent.style.display = 'block'; // Temporarily show for rendering
         document.getElementById('pdfDate').textContent = `Date: ${new Date().toLocaleDateString()}`;
         document.getElementById('pdfReceiptNo').textContent = `Receipt No: ${receiptNumber}`;
@@ -468,7 +468,6 @@
         document.getElementById('pdfNewBalance').textContent = `₹${newBalance}`;
         document.getElementById('pdfReceiptNumber').textContent = receiptNum;
 
-        // Load recent transactions
         loadRecentTransactionsForPDF().then(() => {
           doc.html(pdfContent, {
             callback: function (doc) {
