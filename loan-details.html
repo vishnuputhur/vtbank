@@ -219,6 +219,7 @@
               <th>Interest</th>
               <th>Balance</th>
               <th>Receipt #</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="transactionBody">
@@ -321,6 +322,7 @@
               <td>₹${data.principal || 0}</td>
               <td>₹${data.interest || 0}</td>
               <td>₹${data.newBalance || 0}</td>
+              <td>${data.receiptNumber || 'N/A'}</td>
               <td><button class="download-btn" data-receipt='${JSON.stringify(data)}'>PDF Download</button></td>
             `;
             transactionBody.appendChild(row);
@@ -337,7 +339,7 @@
           });
         } else {
           const row = document.createElement('tr');
-          row.innerHTML = '<td colspan="5" style="text-align: center;">No transactions found.</td>';
+          row.innerHTML = '<td colspan="6" style="text-align: center;">No transactions found.</td>';
           transactionBody.appendChild(row);
         }
       } catch (error) {
