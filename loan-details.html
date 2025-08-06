@@ -166,6 +166,22 @@
       transform: scale(1.05);
     }
 
+    .loading-spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007AC1;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     @media (min-width: 768px) {
       .transaction-table th, .transaction-table td { font-size: 14px; padding: 10px; }
     }
@@ -225,6 +241,7 @@
         </table>
       </div>
 
+      <div id="loadingSpinner" class="loading-spinner"></div>
       <p id="error"></p>
     </div>
   </div>
@@ -321,10 +338,37 @@
 
           document.querySelectorAll('.download-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-              const receiptData = JSON.parse(e.target.dataset.receipt);
-              const userName = document.getElementById('welcomeMsg').innerText.replace('Hi, ', '');
-              const memberNumber = document.getElementById('memberNo').innerText.replace('Member No: ', '');
-              await generateReceiptPDF(receiptData, userName, memberNumber);
+              const spinner = document.getElementById('loadingSpinner');
+              const errorEl = document.getElementById('error');
+              spinner.style.display = 'block';
+              errorEl.innerText = '';
+              
+              try {
+                const receiptData = JSON.parse(e.target.dataset.receipt);
+                const userName = document.getElementById('welcomeMsg').innerText.replace('Hi, ', '');
+                const memberNumber = document.getElementById('memberNo').innerText.replace('Member No: ', '');
+                
+                // Try to open in Chrome first
+                const params = new URLSearchParams();
+                params.append('userName', encodeURIComponent(userName));
+                params.append('memberNumber', encodeURIComponent(memberNumber));
+                params.append('receiptData', encodeURIComponent(JSON.stringify(receiptData)));
+                
+                const pdfUrl = `https://yourdomain.com/pdf-generator.html?${params.toString()}`;
+                const newWindow = window.open(pdfUrl, '_system');
+                
+                // Fallback if redirect fails (after 2 seconds)
+                setTimeout(async () => {
+                  if (!newWindow || newWindow.closed) {
+                    await generateReceiptPDF(receiptData, userName, memberNumber);
+                  }
+                }, 2000);
+              } catch (error) {
+                errorEl.innerText = 'Error generating PDF: ' + error.message;
+                console.error('PDF generation error:', error);
+              } finally {
+                spinner.style.display = 'none';
+              }
             });
           });
         } else {
@@ -413,8 +457,6 @@
 
         // Fetch and add recent transactions
         const recentTransactions = await getRecentTransactions(receiptData.userId, 10);
-        console.log('Recent transactions fetched:', recentTransactions.length, recentTransactions);
-
         const recentData = recentTransactions.map(t => [
           t.date || 'N/A',
           `₹${t.principal || '0'}`,
@@ -455,6 +497,7 @@
       } catch (error) {
         console.error('Error generating PDF:', error);
         document.getElementById('error').innerText = 'Error generating receipt. Please try again.';
+        throw error; // Re-throw to handle in the calling function
       }
     }
 
@@ -468,11 +511,24 @@
         );
 
         const snapshot = await getDocs(q);
-        console.log('Number of recent transactions:', snapshot.size, 'Docs:', snapshot.docs.map(doc => doc.data()));
-        return snapshot.docs.map(doc => doc.data());
+        const transactions = [];
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          // Ensure all required fields exist
+          transactions.push({
+            date: data.date || 'N/A',
+            principal: data.principal || 0,
+            interest: data.interest || 0,
+            newBalance: data.newBalance || 0,
+            receiptNumber: data.receiptNumber || 'N/A'
+          });
+        });
+        
+        return transactions;
       } catch (error) {
         console.error('Error fetching recent transactions:', error);
-        return [];
+        return []; // Return empty array instead of failing
       }
     }
   </script>
