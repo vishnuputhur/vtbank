@@ -158,6 +158,7 @@
       cursor: pointer;
       font-size: 12px;
       transition: all 0.3s;
+      white-space: nowrap;
     }
 
     .download-btn:hover {
@@ -209,19 +210,21 @@
       </div>
 
       <div class="transaction-table">
-        <h3>Recent Transactions</h3>
-        <table>
+        <h3 style="text-align: center; color: #007AC1;">Recent Transactions</h3>
+        <table width="100%">
           <thead>
             <tr>
               <th>Date</th>
               <th>Principal</th>
               <th>Interest</th>
-              <th>New Balance</th>
+              <th>Balance</th>
               <th>Receipt #</th>
               <th>Action</th>
             </tr>
           </thead>
-          <tbody id="transactionBody"></tbody>
+          <tbody id="transactionBody">
+            <!-- Transactions will be loaded here -->
+          </tbody>
         </table>
       </div>
 
@@ -233,7 +236,7 @@
 
   <!-- Add PDF libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
@@ -320,7 +323,7 @@
               <td>₹${data.interest || 0}</td>
               <td>₹${data.newBalance || 0}</td>
               <td>${data.receiptNumber || 'N/A'}</td>
-              <td><button class="download-btn" data-receipt='${JSON.stringify(data)}'>Download</button></td>
+              <td><button class="download-btn" data-receipt='${JSON.stringify(data)}'>Download PDF</button></td>
             `;
             transactionBody.appendChild(row);
           });
@@ -336,127 +339,138 @@
           });
         } else {
           const row = document.createElement('tr');
-          row.innerHTML = '<td colspan="6">No transactions found.</td>';
+          row.innerHTML = '<td colspan="6" style="text-align: center;">No transactions found.</td>';
           transactionBody.appendChild(row);
         }
       } catch (error) {
         console.error('Error loading transactions:', error);
+        document.getElementById('error').innerText = 'Error loading transactions. Please try again.';
       }
     }
 
     async function generateReceiptPDF(receiptData, userName, memberNumber) {
-      const doc = new jsPDF();
-      
-      // Add Cochin Shipyard header
-      doc.setFontSize(18);
-      doc.setTextColor(0, 122, 193);
-      doc.text('Cochin Shipyard Staff Co-operative House Construction Society E 346', 105, 15, { align: 'center' });
-      
-      // Add small contact info
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text('Ravipuram, Email: shipyardhousingsocity@gmail.com | csshcs@yahoo.com', 105, 22, { align: 'center' });
-      
-      // Add RECEIPT heading
-      doc.setFontSize(24);
-      doc.setTextColor(0, 122, 193);
-      doc.text('RECEIPT', 105, 35, { align: 'center' });
-      
-      // Add user details
-      doc.setFontSize(12);
-      doc.setTextColor(0);
-      doc.text(`Name: ${userName}`, 20, 45);
-      doc.text(`Member No: ${memberNumber}`, 20, 55);
-      doc.text(`Loan No: ${receiptData.loanNumber || 'N/A'}`, 20, 65);
-      
-      // Add receipt details on right side
-      doc.text(`Date: ${receiptData.date || 'N/A'}`, 150, 45);
-      doc.text(`Receipt No: ${receiptData.receiptNumber || 'N/A'}`, 150, 55);
-      
-      // Add transaction details heading
-      doc.setFontSize(14);
-      doc.setTextColor(0, 122, 193);
-      doc.text('Transaction Details', 105, 80, { align: 'center' });
-      
-      // Transaction table data
-      const transactionData = [
-        ['Description', 'Amount (₹)'],
-        ['Principal Paid', receiptData.principal || '0'],
-        ['Interest Paid', receiptData.interest || '0'],
-        ['Total Paid', (parseFloat(receiptData.principal || 0) + parseFloat(receiptData.interest || 0)).toFixed(2)],
-        ['New Balance', receiptData.newBalance || '0']
-      ];
-      
-      // Generate transaction table
-      doc.autoTable({
-        startY: 85,
-        head: [transactionData[0]],
-        body: transactionData.slice(1),
-        theme: 'grid',
-        headStyles: {
-          fillColor: [0, 122, 193],
-          textColor: 255
-        },
-        margin: { left: 20 }
-      });
-      
-      // Add recent transactions heading
-      doc.setFontSize(14);
-      doc.setTextColor(0, 122, 193);
-      doc.text('Recent Transactions', 105, doc.autoTable.previous.finalY + 15, { align: 'center' });
-      
-      // Get last 10 transactions
-      const recentTransactions = await getRecentTransactions(receiptData.userId, 10);
-      
-      // Prepare recent transactions data
-      const recentData = recentTransactions.map(t => [
-        t.date,
-        `₹${t.principal || '0'}`,
-        `₹${t.interest || '0'}`,
-        `₹${t.newBalance || '0'}`,
-        t.receiptNumber || 'N/A'
-      ]);
-      
-      // Generate recent transactions table
-      doc.autoTable({
-        startY: doc.autoTable.previous.finalY + 20,
-        head: [['Date', 'Principal', 'Interest', 'Balance', 'Receipt No']],
-        body: recentData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [0, 122, 193],
-          textColor: 255
-        },
-        margin: { left: 20 }
-      });
-      
-      // Add signature area
-      const finalY = doc.autoTable.previous.finalY + 20;
-      doc.line(40, finalY, 80, finalY); // Left line
-      doc.text('Secretary', 60, finalY + 10);
-      
-      doc.line(130, finalY, 170, finalY); // Right line
-      doc.text('Treasurer', 150, finalY + 10);
-      
-      // Add footer note
-      doc.setFontSize(8);
-      doc.setTextColor(100);
-      doc.text('Computer generated print out', 105, 285, { align: 'center' });
-      
-      // Save the PDF
-      doc.save(`Receipt_${receiptData.receiptNumber || 'N/A'}.pdf`);
+      try {
+        const doc = new jsPDF();
+        
+        // Add Cochin Shipyard header
+        doc.setFontSize(18);
+        doc.setTextColor(0, 122, 193);
+        doc.text('Cochin Shipyard Staff Co-operative House Construction Society E 346', 105, 15, { align: 'center' });
+        
+        // Add small contact info
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('Ravipuram, Email: shipyardhousingsocity@gmail.com | csshcs@yahoo.com', 105, 22, { align: 'center' });
+        
+        // Add RECEIPT heading
+        doc.setFontSize(24);
+        doc.setTextColor(0, 122, 193);
+        doc.text('RECEIPT', 105, 35, { align: 'center' });
+        
+        // Add user details
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text(`Name: ${userName}`, 20, 45);
+        doc.text(`Member No: ${memberNumber}`, 20, 55);
+        doc.text(`Loan No: ${receiptData.loanNumber || 'N/A'}`, 20, 65);
+        
+        // Add receipt details on right side
+        doc.text(`Date: ${receiptData.date || 'N/A'}`, 150, 45);
+        doc.text(`Receipt No: ${receiptData.receiptNumber || 'N/A'}`, 150, 55);
+        
+        // Add transaction details heading
+        doc.setFontSize(14);
+        doc.setTextColor(0, 122, 193);
+        doc.text('Transaction Details', 105, 80, { align: 'center' });
+        
+        // Transaction table data
+        const transactionData = [
+          ['Description', 'Amount (₹)'],
+          ['Principal Paid', receiptData.principal || '0'],
+          ['Interest Paid', receiptData.interest || '0'],
+          ['Total Paid', (parseFloat(receiptData.principal || 0) + parseFloat(receiptData.interest || 0)).toFixed(2)],
+          ['New Balance', receiptData.newBalance || '0']
+        ];
+        
+        // Generate transaction table
+        doc.autoTable({
+          startY: 85,
+          head: [transactionData[0]],
+          body: transactionData.slice(1),
+          theme: 'grid',
+          headStyles: {
+            fillColor: [0, 122, 193],
+            textColor: 255
+          },
+          margin: { left: 20 }
+        });
+        
+        // Add recent transactions heading
+        doc.setFontSize(14);
+        doc.setTextColor(0, 122, 193);
+        doc.text('Recent Transactions', 105, doc.autoTable.previous.finalY + 15, { align: 'center' });
+        
+        // Get last 10 transactions
+        const recentTransactions = await getRecentTransactions(receiptData.userId, 10);
+        
+        // Prepare recent transactions data
+        const recentData = recentTransactions.map(t => [
+          t.date,
+          `₹${t.principal || '0'}`,
+          `₹${t.interest || '0'}`,
+          `₹${t.newBalance || '0'}`,
+          t.receiptNumber || 'N/A'
+        ]);
+        
+        // Generate recent transactions table
+        doc.autoTable({
+          startY: doc.autoTable.previous.finalY + 20,
+          head: [['Date', 'Principal', 'Interest', 'Balance', 'Receipt No']],
+          body: recentData,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [0, 122, 193],
+            textColor: 255
+          },
+          margin: { left: 20 }
+        });
+        
+        // Add signature area
+        const finalY = doc.autoTable.previous.finalY + 20;
+        doc.line(40, finalY, 80, finalY); // Left line
+        doc.text('Secretary', 60, finalY + 10);
+        
+        doc.line(130, finalY, 170, finalY); // Right line
+        doc.text('Treasurer', 150, finalY + 10);
+        
+        // Add footer note
+        doc.setFontSize(8);
+        doc.setTextColor(100);
+        doc.text('Computer generated print out', 105, 285, { align: 'center' });
+        
+        // Save the PDF
+        doc.save(`Receipt_${receiptData.receiptNumber || 'N/A'}.pdf`);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        document.getElementById('error').innerText = 'Error generating receipt. Please try again.';
+      }
     }
 
     async function getRecentTransactions(userId, limit) {
-      const q = query(
-        collection(db, 'payments'), 
-        where('userId', '==', userId),
-        orderBy('date', 'desc'),
-        limit(limit)
-      );
-      
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => doc.data());
+      try {
+        const q = query(
+          collection(db, 'payments'), 
+          where('userId', '==', userId),
+          orderBy('date', 'desc'),
+          limit(limit)
+        );
+        
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => doc.data());
+      } catch (error) {
+        console.error('Error fetching recent transactions:', error);
+        return [];
+      }
     }
   </script>
 </body>
