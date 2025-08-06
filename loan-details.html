@@ -25,7 +25,7 @@
       align-items: center;
       min-height: 100vh;
       overflow-x: hidden;
-      padding-top: 4mm; /* for top gap */
+      padding-top: 4mm;
       box-sizing: border-box;
     }
 
@@ -50,7 +50,7 @@
       width: 100%;
       padding: 0 10px;
       box-sizing: border-box;
-      margin-top: 80px; /* to avoid overlap with fixed image */
+      margin-top: 80px;
     }
 
     .card {
@@ -377,7 +377,7 @@
           }
         } catch (error) {
           errorEl.innerText = 'Error loading data: ' + error.message;
-          console.error('Error in auth state change:', error);
+          console.error('Auth error:', error);
         }
       } else {
         window.location.href = 'index.html';
@@ -400,7 +400,7 @@
           document.getElementById('surety2').textContent = data.guarantors[1] || 'N/A';
         }
       } catch (error) {
-        console.error('Error loading loan details:', error);
+        console.error('Loan details error:', error);
       }
     }
 
@@ -429,7 +429,7 @@
           transactionBody.appendChild(row);
         }
       } catch (error) {
-        console.error('Error loading transactions:', error);
+        console.error('Transactions error:', error);
       }
     }
 
@@ -437,12 +437,12 @@
       const { jsPDF } = window.jspdf;
       if (!jsPDF) {
         console.error('jsPDF not loaded');
-        alert('PDF generation failed. Check console for details.');
+        alert('PDF generation failed. Please check the console.');
         return;
       }
       const doc = new jsPDF();
       const pdfContent = document.getElementById('pdfContent');
-      pdfContent.style.display = 'block'; // Temporarily show for rendering
+      pdfContent.style.display = 'block';
       document.getElementById('pdfDate').textContent = `Date: ${new Date().toLocaleDateString()}`;
       document.getElementById('pdfReceiptNo').textContent = `Receipt No: ${receiptNumber}`;
       document.getElementById('pdfTransactionDate').textContent = date;
@@ -455,14 +455,14 @@
         doc.html(pdfContent, {
           callback: function (doc) {
             doc.save(`Receipt_${receiptNumber}.pdf`);
-            pdfContent.style.display = 'none'; // Hide after generation
+            pdfContent.style.display = 'none';
           },
           x: 10,
           y: 10,
           html2canvas: { scale: 0.8 }
         });
       }).catch(error => {
-        console.error('Error in PDF generation:', error);
+        console.error('PDF generation error:', error);
         pdfContent.style.display = 'none';
       });
     }
@@ -490,7 +490,7 @@
             pdfRecentTransactions.appendChild(row);
           });
         } catch (error) {
-          console.error('Error loading recent transactions for PDF:', error);
+          console.error('Recent transactions error:', error);
         }
       }
     }
