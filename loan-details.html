@@ -350,22 +350,22 @@
         // Add border box
         const margin = 10;
         doc.setLineWidth(1);
-        doc.rect(margin, margin, 210 - 2 * margin, 297 - 2 * margin);
+        doc.rect(margin, margin, 210 - 2 * margin, 277);
 
-        // Add Cochin Shipyard header (split into two lines, Times New Roman, bold, 24px)
+        // Cochin Shipyard Heading (19px, 8mm gap between lines)
         doc.setFont('times', 'bold');
-        doc.setFontSize(24);
+        doc.setFontSize(19);
         doc.setTextColor(0, 122, 193);
         doc.text('Cochin Shipyard Staff', 105, 20, { align: 'center' });
-        doc.text('Co-operative House Construction Society E 346', 105, 26, { align: 'center' });
+        doc.text('Co-operative House Construction Society E 346', 105, 28, { align: 'center' });
 
         // Add small contact info
         doc.setFontSize(10);
         doc.setTextColor(100);
-        doc.text('Ravipuram, Email: shipyardhousingsocity@gmail.com | csshcs@yahoo.com', 105, 33, { align: 'center' });
+        doc.text('Ravipuram, Email: shipyardhousingsocity@gmail.com | csshcs@yahoo.com', 105, 35, { align: 'center' });
 
-        // Add RECEIPT heading
-        doc.setFontSize(24);
+        // Add RECEIPT heading (19px)
+        doc.setFontSize(19);
         doc.setTextColor(0, 122, 193);
         doc.text('RECEIPT', 105, 45, { align: 'center' });
 
@@ -412,8 +412,10 @@
         doc.setTextColor(0, 122, 193);
         doc.text('Recent Transactions', 105, doc.autoTable.previous.finalY + 15, { align: 'center' });
 
-        // Get last 10 transactions
+        // Debug recent transactions
+        console.log('Fetching recent transactions for userId:', receiptData.userId);
         const recentTransactions = await getRecentTransactions(receiptData.userId, 10);
+        console.log('Recent transactions fetched:', recentTransactions.length, recentTransactions);
 
         // Prepare recent transactions data
         const recentData = recentTransactions.map(t => [
@@ -468,6 +470,7 @@
         );
 
         const snapshot = await getDocs(q);
+        console.log('Number of recent transactions:', snapshot.size);
         return snapshot.docs.map(doc => doc.data());
       } catch (error) {
         console.error('Error fetching recent transactions:', error);
