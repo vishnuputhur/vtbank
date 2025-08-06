@@ -219,7 +219,6 @@
               <th>Interest</th>
               <th>Balance</th>
               <th>Receipt #</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tbody id="transactionBody">
@@ -277,6 +276,7 @@
           }
         } catch (error) {
           errorEl.innerText = 'Error loading data: ' + error.message;
+          console.error('Auth error:', error);
         }
       } else {
         window.location.href = 'index.html';
@@ -299,12 +299,13 @@
           document.getElementById('surety2').textContent = data.guarantors[1] || 'N/A';
         }
       } catch (error) {
-        console.error('Error loading loan details:', error);
+        console.error('Loan details error:', error);
       }
     }
 
     async function loadTransactions(userId, memberNumber) {
       try {
+        console.log('Fetching transactions for userId:', userId);
         const paymentsSnapshot = await getDocs(query(
           collection(db, 'payments'), 
           where('userId', '==', userId),
@@ -316,19 +317,19 @@
         if (!paymentsSnapshot.empty) {
           paymentsSnapshot.forEach(doc => {
             const data = doc.data();
+            console.log('Transaction data:', data);
             const row = document.createElement('tr');
             row.innerHTML = `
               <td>${data.date || 'N/A'}</td>
               <td>₹${data.principal || 0}</td>
               <td>₹${data.interest || 0}</td>
               <td>₹${data.newBalance || 0}</td>
-              <td>${data.receiptNumber || 'N/A'}</td>
               <td><button class="download-btn" data-receipt='${JSON.stringify(data)}'>PDF Download</button></td>
             `;
             transactionBody.appendChild(row);
           });
 
-          // Add event listeners to download buttons
+          // Add event listeners after all buttons are created
           document.querySelectorAll('.download-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
               const receiptData = JSON.parse(e.target.dataset.receipt);
@@ -338,12 +339,13 @@
             });
           });
         } else {
+          console.log('No transactions found for userId:', userId);
           const row = document.createElement('tr');
-          row.innerHTML = '<td colspan="6" style="text-align: center;">No transactions found.</td>';
+          row.innerHTML = '<td colspan="5" style="text-align: center;">No transactions found.</td>';
           transactionBody.appendChild(row);
         }
       } catch (error) {
-        console.error('Error loading transactions:', error);
+        console.error('Transactions error:', error);
         document.getElementById('error').innerText = 'Error loading transactions. Please try again.';
       }
     }
@@ -451,13 +453,14 @@
         // Save the PDF
         doc.save(`Receipt_${receiptData.receiptNumber || 'N/A'}.pdf`);
       } catch (error) {
-        console.error('Error generating PDF:', error);
+        console.error('PDF generation error:', error);
         document.getElementById('error').innerText = 'Error generating receipt. Please try again.';
       }
     }
 
     async function getRecentTransactions(userId, limit) {
       try {
+        console.log('Fetching recent transactions for userId:', userId);
         const q = query(
           collection(db, 'payments'), 
           where('userId', '==', userId),
@@ -466,9 +469,10 @@
         );
         
         const snapshot = await getDocs(q);
+        console.log('Number of recent transactions fetched:', snapshot.size);
         return snapshot.docs.map(doc => doc.data());
       } catch (error) {
-        console.error('Error fetching recent transactions:', error);
+        console.error('Recent transactions error:', error);
         return [];
       }
     }
