@@ -234,7 +234,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
@@ -320,6 +320,7 @@
               const userName = document.getElementById('welcomeMsg').innerText.replace('Hi, ', '');
               const memberNumber = document.getElementById('memberNo').innerText.replace('Member No: ', '');
               const url = `generate-pdf.html?userName=${encodeURIComponent(userName)}&memberNumber=${encodeURIComponent(memberNumber)}&receiptData=${encodeURIComponent(JSON.stringify(receiptData))}`;
+              console.log('Redirecting to:', url); // Debug log
               window.location.href = url;
             });
           });
