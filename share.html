@@ -1,497 +1,179 @@
-4<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-21G1BS7S3S"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-21G1BS7S3S');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSL Calculations</title>
-    <style>
-        html {
-            -webkit-text-size-adjust: 80%;
-            text-size-adjust: 80%;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(to bottom, #094552, #1a6b7b); /* Updated darker top gradient */
-            color: white;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-            font-size: 0.85rem;
-        }
-        header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 5px;
-            background: #094552; /* Updated solid darker color */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-            height: 40px;
-        }
-        .menu-icon {
-            position: absolute;
-            left: 10px;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-        }
-        .menu-icon div {
-            width: 100%;
-            height: 3px;
-            background-color: white;
-            transition: 0.3s;
-        }
-        .menu-icon:hover {
-            transform: scale(1.1);
-            filter: drop-shadow(0 0 8px white);
-        }
-        .header-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            font-family: "Times New Roman", Times, serif;
-            text-align: center;
-            margin: 0;
-        }
-        .header-subtitle {
-            font-size: 0.6rem;
-            color: #87CEEB;
-            font-weight: bold;
-            text-align: center;
-            margin: 0;
-        }
-        .menu-drawer {
-            position: fixed;
-            top: 40px;
-            left: -220px;
-            width: 220px;
-            height: calc(100% - 40px);
-            background: linear-gradient(to bottom, #094552, #1a6b7b); /* Updated darker top gradient */
-            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
-            border-right: 2px solid #87CEEB;
-            display: flex;
-            flex-direction: column;
-            padding-top: 20px;
-            transition: left 0.5s ease-in-out;
-            z-index: 999;
-        }
-        .menu-drawer.open {
-            left: 0;
-        }
-        .menu-drawer a {
-            margin: 8px 15px;
-            padding: 8px;
-            text-decoration: none;
-            color: white;
-            background: linear-gradient(to right, #1a6b7b, #307A8A);
-            border-radius: 5px;
-            text-align: center;
-            font-weight: 600;
-            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5), inset 0 0 5px rgba(255, 255, 255, 0.2); /* Enhanced 3D shadow */
-            transform: translateX(-100%) perspective(500px) rotateY(0deg); /* Added perspective for 3D */
-            opacity: 0;
-            transition: transform 0.4s ease, opacity 0.4s ease, box-shadow 0.3s ease;
-            --index: 0;
-            transition-delay: calc(var(--index) * 0.1s);
-        }
-        .menu-drawer.open a {
-            transform: translateX(0) perspective(500px) rotateY(0deg);
-            opacity: 1;
-        }
-        .menu-drawer a:hover {
-            transform: translateY(-4px) perspective(500px) rotateY(5deg); /* 3D tilt on hover */
-            box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.7), inset 0 0 5px rgba(255, 255, 255, 0.3); /* Enhanced 3D shadow on hover */
-        }
-        section {
-            flex: 1;
-            padding: 60px 20px 20px;
-            text-align: center;
-        }
-        .welcome-note {
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 1.3em;
-            margin: 8px 0;
-        }
-        .welcome-subtext {
-            color: #ffffff;
-            font-weight: 500;
-            font-size: 0.9em;
-            margin: 4px 0;
-        }
-        .content-box {
-            background-color: #F0F1F2;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-            margin: 15px auto;
-            width: 85%;
-            max-width: 750px;
-            color: #0b5363;
-            font-size: 0.85rem;
-        }
-        .content-box a {
-            color: #307A8A;
-        }
-        .blink {
-            color: red;
-            font-size: 12px;
-            font-weight: bold;
-            animation: blinker 1s linear infinite;
-        }
-        @keyframes blinker {
-            50% { opacity: 0; }
-        }
-        footer {
-            text-align: center;
-            padding: 8px;
-            background: linear-gradient(to top, #094552, #1a6b7b); /* Updated darker top gradient */
-            color: #fff;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-            font-size: 0.7rem;
-        }
-        .version {
-            font-size: 0.6rem;
-        }
-        html {
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
-        }
-        .whats-new {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px;
-            margin: 15px auto;
-            width: 85%;
-            max-width: 750px;
-            height: 80px;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid #1a6b7b;
-        }
-        .whats-new-header {
-            color: #DAA520;
-            text-align: center;
-            margin-top: 0;
-            padding: 4px 0;
-            font-size: 0.9rem;
-            margin-bottom: 0.5mm; /* Updated to bring even closer to box */
-        }
-        .whats-new-content {
-            position: relative;
-            width: 100%;
-        }
-        .whats-new ul {
-            padding-left: 20px;
-            margin: 0;
-            list-style-type: none;
-        }
-        .whats-new li {
-            margin-bottom: 10px;
-            color: #fff;
-            padding: 4px 0;
-            font-size: 0.8rem;
-        }
-.quick-links {
-    margin: 15px auto;
-    width: 85%;
-    max-width: 750px;
-    text-align: center;
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="rgba(0,0,0,0)" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Society App - Shares</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.quick-links-header {
-    color: #DAA520;
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 8px 0;
-}
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
 
-.quick-links-container {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8, #e0f2fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      backdrop-filter: blur(5px);
+    }
 
-.quick-link-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(to bottom, #1a6b7b, #307A8A);
-    border-radius: 12px;
-    text-decoration: none;
-    color: white;
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5), inset 0 0 5px rgba(255, 255, 255, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+    .cover-image {
+      width: 100%;
+      height: auto;
+      max-height: 169px;
+      object-fit: cover;
+      margin-top: 10px;
+      animation: fadeIn 1s ease-in-out;
+    }
 
-.quick-link-button:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.7), inset 0 0 5px rgba(255, 255, 255, 0.3);
-}
+    .card-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
+      position: relative;
+      flex-grow: 1;
+    }
 
-.quick-link-icon {
-    font-size: 2rem;
-    margin-bottom: 5px;
-}
+    .card {
+      background: #ffffff;
+      border-radius: 15px;
+      padding: 12px;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
+      margin: 10px auto;
+      border: 1px solid #e0e7ff;
+      animation: fadeIn 1.5s ease-in-out;
+    }
 
-.quick-link-label {
-    font-size: 0.6rem;
-    font-weight: 500;
-    text-align: center;
-    line-height: 1.2;
-}
-    </style>
+    h2 {
+      text-align: center;
+      font-size: 16px;
+      color: #007AC1;
+      margin-bottom: 10px;
+      font-weight: 600;
+      animation: pulse 2s infinite;
+    }
+
+    .amounts {
+      text-align: center;
+      margin: 8px 0;
+      background: #f0f9ff;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #c3e8ff;
+    }
+
+    .amounts p {
+      margin: 3px 0;
+      font-size: 13px;
+      color: #007AC1;
+      font-weight: 500;
+    }
+
+    #error {
+      color: #dc2626;
+      font-size: 11px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .footer {
+      width: 100%;
+      background: #007AC1;
+      color: #ffffff;
+      text-align: center;
+      padding: 8px 0;
+      font-size: 10px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="menu-icon" id="menu-icon">
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
-        <div>
-            <h1 class="header-title">CSL Calculations</h1>
-            <p class="header-subtitle">Efficient Tools for Financial Planning</p>
-        </div>
-    </header>
-    <div class="menu-drawer" id="menu-drawer">
-        <br>
-        <a href="https://vishnuputhur.github.io/cslv2/index.html">Ship Theory Dictionary</a>
-        <a href="calender.html">CSL Calendar</a>
-        <a href="csl.html">Salary Calculator</a>
-        <a href="kg.html">Weight Calculator</a>
-        <a href="tax.html">Tax Calculator</a>
-        <a href="emi.html">EMI Calculator</a>
-        <a href="pf.html">PF Calculator</a>
-        <a href="tri.html">Trigonometric Calculator</a>
-        <a href="wl.html">Water Level Calculator</a>
-        <a href="bmi.html">BMI & Age Calculator</a>
-  <a href="exp.html">Expense Diary</a>
-        <a href="contact.html">Contact Us</a>
-   <a href="about.html">About</a>
-  </div>
-    <section>
-        <div class="whats-new-header">New Updates</div>
-        <div class="whats-new">
-            <div class="whats-new-content">
-                <ul>
-                    <li>Watsapp Chat added in contact us</li>
-                    <li>Expense Diary Added</li>
-                    <li>Water Level Calculator with PDF output</li>
-                    <li>New Version APK Released (V2)</li>
-                    <li>Improved UI/UX design</li>
-                    <li>2025-26 income tax calculator added soon</li>
-                    <li><span class="blink">New</span> Ship Theory Dictionary Added</li>
-                    <li>DA added 0.3% (49%)</li>
-                    <li>CSL Calender Note Added</li>
-                    <li>Salary calculation updates</li>
-                </ul>
-            </div>
-        </div>
-<div class="quick-links">
-    <h3 class="quick-links-header">Quick Links</h3>
-    <div class="quick-links-container">
-        <a href="calender.html" class="quick-link-button">
-            <span class="quick-link-icon">📆</span>
-            <span class="quick-link-label">CSL Calendar</span>
-        </a>
-        <a href="csl.html" class="quick-link-button">
-            <span class="quick-link-icon">💵</span>
-            <span class="quick-link-label">Salary Calculator</span>
-        </a>
-        <a href="pf.html" class="quick-link-button">
-            <span class="quick-link-icon">🏦</span>
-            <span class="quick-link-label">PF Calculator</span>
-        </a>
+
+  <!-- Top Cover Image -->
+  <img src="https://i.ibb.co/Z6Wd0pnW/poster-2025-07-28-055229.png" alt="Top Poster" class="cover-image" />
+  <br><br>
+
+  <div class="card-container">
+    <div class="card">
+      <h2>Share Details</h2>
+      <div class="amounts">
+        <p>No. of Shares: <span id="shareValue">--</span></p>
+        <p>Share Amount: <span id="shareAmountValue">₹--</span></p>
+      </div>
+      <p id="error"></p>
     </div>
-</div>
-        <div class="content-box">
-            <h2>Ship Theory Dictionary</h2>
-            <p>
-                Explore 300+ essential ship theory definitions clear, Simple, and easy to find when you need them.<br>
-                <a href="di.html">Click to Open</a>
-            </p>
-        </div>
-        <div class="content-box">
-            <h2>PF Calculator</h2>
-            <p>
-                Calculate your PF withdrawal amount, balance after opting for a higher pension, or estimated pension amount.
-                <br>
-                <a href="pf.html">Click to Open</a>
-            </p>
-        </div>
-        <div class="content-box">
-            <h2>Weight Calculator</h2>
-            <p>
-                Easily calculate the weight of materials like Mild Steel, Stainless Steel, Aluminium, Wood, Glass, and Water. Select shapes like Square, Circle, or Triangle for accurate results in kilograms. Perfect for fabricators, engineers, and designers.
-                <br><br>
-                <a href="kg.html">Click to Open</a>
-            </p>
-        </div>
-        <div class="content-box">
-            <h2>Other Features</h2>
-            <p>
-                <a href="calender.html">CSL Calendar</a>: Now you can save your leave, punching time, OT and related details directly in the calendar. And Track your shifts with color-coded markings.<br><br>
-                <a href="tri.html">Trigonometric Calculator</a>: Check if a surface or frame is square by calculating the diagonal. Enter two sides to find the third.<br><br>
-                <a href="csl.html">Salary Calculator</a>: Calculate overtime, check progress toward your next grade promotion, and view DA, HRA, and Earned Leave rates.<br><br>
-                <a href="emi.html">EMI Calculator</a>: Manage loans by calculating principal and interest percentages to optimize your EMI payments.
-            </p>
-        </div>
-        <h3 style="color: #DAA520; font-size: 1rem; margin: 8px 0;">📅 Upcoming CSL Holidays</h3>
-        <div id="upcomingHolidays" style="color: white; font-size: 1rem; font-weight: 500; line-height: 1.5; margin: 8px 0;">
-            Loading holidays...
-        </div>
-    </section>
-    <div style="height: 60px;"></div>
-    <footer>
-        © 2025 CSL Calculations | VTSoft | All Rights Reserved
-    </footer>
-    <script>
-        // Holiday data (month is 0-indexed, so 0=January)
-        const holidays = [
-            { date: new Date(new Date().getFullYear(), 2, 31), name: "Id-ul-Fitr (Ramzan)" },
-            { date: new Date(new Date().getFullYear(), 3, 14), name: "Vishu / Dr. BR Ambedkar Jayanthi" },
-            { date: new Date(new Date().getFullYear(), 3, 18), name: "Good Friday" },
-            { date: new Date(new Date().getFullYear(), 4, 1), name: "May Day" },
-            { date: new Date(new Date().getFullYear(), 5, 6), name: "Bakrid" },
-            { date: new Date(new Date().getFullYear(), 7, 15), name: "Independence Day" },
-            { date: new Date(new Date().getFullYear(), 8, 4), name: "First Onam" },
-            { date: new Date(new Date().getFullYear(), 8, 5), name: "Thiruvonam" },
-            { date: new Date(new Date().getFullYear(), 8, 6), name: "Third Onam" },
-            { date: new Date(new Date().getFullYear(), 9, 2), name: "Gandhi Jayanthi / Vijayadasami" },
-            { date: new Date(new Date().getFullYear(), 9, 20), name: "Deepavali" },
-            { date: new Date(new Date().getFullYear(), 11, 25), name: "Christmas" }
-        ];
-        // Get current date
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        // Find upcoming holidays
-        const upcoming = holidays.filter(holiday => holiday.date >= today);
-        const nextTwo = upcoming.slice(0, 2);
-        // Format display
-        let displayText = nextTwo.length > 0
-            ? nextTwo.map(holiday =>
-                `${holiday.date.toLocaleDateString('en-IN', {month:'short', day:'numeric'})}: ${holiday.name}`
-              ).join("<br>")
-            : "No upcoming holidays";
-        document.getElementById('upcomingHolidays').innerHTML = displayText;
-        // Dynamically set --index for each menu item
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuItems = document.querySelectorAll('.menu-drawer a');
-            menuItems.forEach((item, index) => {
-                item.style.setProperty('--index', index);
-            });
-            // Menu toggle
-            document.getElementById("menu-icon").addEventListener("click", function() {
-                var menu = document.getElementById("menu-drawer");
-                menu.classList.toggle("open");
-            });
-            // What's new animation
-            const container = document.querySelector('.whats-new');
-            const content = document.querySelector('.whats-new-content');
-            const list = document.querySelector('.whats-new ul');
-            let animating = true;
-            let scrollPos = 0;
-            // Clone list items for seamless looping
-            list.innerHTML += list.innerHTML;
-            function animate() {
-                if (!animating) return;
-                scrollPos -= 0.2; // Adjust speed (smaller = slower)
-                // Reset when scrolled halfway (since we duplicated content)
-                if (scrollPos <= -list.scrollHeight/2) {
-                    scrollPos = 0;
-                }
-                content.style.transform = `translateY(${scrollPos}px)`;
-                requestAnimationFrame(animate);
-            }
-            // Start animation
-            animate();
-            // Pause on hover
-            container.addEventListener('mouseenter', () => {
-                animating = false;
-            });
-            // Resume on mouse leave
-            container.addEventListener('mouseleave', () => {
-                animating = true;
-                animate();
-            });
-        });
-    </script>
-    <script>
-        // Snowflake creation
-        function createSnowflake() {
-            const snowflake = document.createElement('div');
-            snowflake.classList.add('snowflake');
-            snowflake.style.left = Math.random() * 100 + 'vw';
-            snowflake.style.fontSize = (Math.random() * 10 + 8) + 'px';
-            snowflake.style.opacity = Math.random().toFixed(2);
-            snowflake.style.animationDuration = (Math.random() * 3 + 5) + 's';
-            snowflake.innerHTML = '❄️';
-            document.body.appendChild(snowflake);
-            setTimeout(() => snowflake.remove(), 10000);
+  </div>
+
+  <div class="footer">Powered by VT Soft 2025</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
+      authDomain: "probanker-2bce7.firebaseapp.com",
+      projectId: "probanker-2bce7",
+      storageBucket: "probanker-2bce7.appspot.com",
+      messagingSenderId: "27106244956",
+      appId: "1:27106244956:web:59792c9dc94aa8e5232999",
+      measurementId: "G-31138VCDFZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      const shareValueEl = document.getElementById('shareValue');
+      const shareAmountValueEl = document.getElementById('shareAmountValue');
+      const errorEl = document.getElementById('error');
+
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            const shareValue = data.share !== undefined ? data.share : '--';
+            const shareAmountValue = data.shareAmount !== undefined ? data.shareAmount : 0;
+            shareValueEl.innerText = shareValue;
+            shareAmountValueEl.innerText = `₹${shareAmountValue.toFixed(2)}`;
+          } else {
+            errorEl.innerText = 'User not found! Contact admin.';
+          }
+        } catch (error) {
+          errorEl.innerText = 'Error loading share data: ' + error.message;
         }
-        // Start and stop functions
-        function startSnowfall() {
-            if (window.snowfallActive) return;
-            window.snowfallActive = true;
-            window.snowfallInterval = setInterval(createSnowflake, 500);
-        }
-        function stopSnowfall() {
-            window.snowfallActive = false;
-            clearInterval(window.snowfallInterval);
-            document.querySelectorAll('.snowflake').forEach(flake => flake.remove());
-        }
-        // Idle detection - 5 seconds
-        let idleTimer;
-        function resetIdleTimer() {
-            clearTimeout(idleTimer);
-            if (window.snowfallActive) stopSnowfall();
-            idleTimer = setTimeout(startSnowfall, 5000);
-        }
-        // Detect user activity
-        ['mousemove', 'mousedown', 'touchstart', 'scroll', 'keydown'].forEach(event =>
-            document.addEventListener(event, resetIdleTimer)
-        );
-        resetIdleTimer(); // Initialize
-    </script>
-    <style>
-        .snowflake {
-            position: fixed;
-            top: -5%;
-            z-index: 9999;
-            color: white;
-            pointer-events: none;
-            animation-name: fall;
-            animation-timing-function: linear;
-            animation-iteration-count: 1;
-        }
-        @keyframes fall {
-            to {
-                transform: translateY(110vh) rotate(360deg);
-            }
-        }
-    </style>
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
 </body>
 </html>
