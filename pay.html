@@ -115,8 +115,7 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
-
+  <img src="https://i.ibb.co/wNGKBby/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
   <div class="card">
     <h1>Pay by UPI</h1>
     <div id="qrcode" class="qr"></div>
@@ -128,9 +127,7 @@
     <button onclick="generateQRCode()">Generate QR Code</button>
     <button onclick="window.location.href='index.html'">Back to Home</button>
   </div>
-
   <div class="footer">CSSCHCS | VTSoft | © 2025</div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
@@ -197,12 +194,12 @@
 
             const lastDate = new Date(lastPaymentDate);
             const todayDate = new Date('2025-08-05');
-            const daysDiff = Math.max(0, Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24))); // Ensure non-negative days
+            const daysDiff = Math.max(0, Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24)));
 
             const principalPerInstallment = loanData.amount / loanData.installments || 0;
             const interestRate = loanData.interest || 12;
             const monthlyInterestRate = interestRate / 12 / 100;
-            const interestDueDays = Math.max(0, loanData.balance * monthlyInterestRate * (daysDiff / 30)); // Non-negative interest
+            const interestDueDays = Math.max(0, loanData.balance * monthlyInterestRate * (daysDiff / 30));
             const interestDueExtra = loanData.interestDue || 0;
             const principalDueExtra = loanData.principalDue || 0;
 
@@ -275,14 +272,18 @@
       const upiURL = `upi://pay?pa=${encodeURIComponent(upiID)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
 
       try {
+        // Attempt to trigger the UPI app
         window.location.href = upiURL;
-        console.log('Redirecting to:', upiURL);
+        console.log('Attempting to trigger UPI:', upiURL);
+        // Immediately redirect to index.html
         setTimeout(() => {
-          window.location.href = `intent://${upiURL.replace('upi://', '')}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-        }, 1000);
+          window.location.href = 'index.html';
+        }, 100); // Small delay to allow UPI app to trigger
       } catch (error) {
         console.error('UPI redirect error:', error);
         alert('UPI app not triggered. Ensure a UPI app is installed.');
+        // Redirect to index.html even on error
+        window.location.href = 'index.html';
       }
     };
   </script>
