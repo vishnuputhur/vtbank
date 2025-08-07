@@ -14,178 +14,77 @@
 <body>
     <p id="error"></p>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
-            authDomain: "probanker-2bce7.firebaseapp.com",
-            projectId: "probanker-2bce7",
-            storageBucket: "probanker-2bce7.appspot.com",
-            messagingSenderId: "27106244956",
-            appId: "1:27106244956:web:59792c9dc94aa8e5232999",
-            measurementId: "G-31138VCDFZ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const { jsPDF } = window.jspdf;
-
+    <script>
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const userName = decodeURIComponent(urlParams.get('userName') || 'VT Soft User');
         const memberNumber = decodeURIComponent(urlParams.get('memberNumber') || 'N/A');
         const receiptDataStr = decodeURIComponent(urlParams.get('receiptData') || '{}');
         const receiptData = JSON.parse(receiptDataStr);
-        const userId = auth.currentUser ? auth.currentUser.uid : null;
 
-        async function generateReceiptPDF() {
-            try {
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
+        // Generate PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
 
-                const margin = 15;
-                const pageWidth = 210;
-                const pageHeight = 297;
-                const contentWidth = pageWidth - 2 * margin;
+        const margin = 15;
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const contentWidth = pageWidth - 2 * margin;
 
-                // Add border
-                doc.setLineWidth(0.5);
-                doc.rect(margin, margin, contentWidth, pageHeight - 2 * margin);
-
-                // Add Cochin Shipyard header
-                doc.setFont('times', 'bold');
-                doc.setFontSize(19);
-                doc.setTextColor(0, 122, 193);
-                doc.text('Cochin Shipyard Staff', margin + contentWidth / 2, margin + 10, { align: 'center' });
-                doc.text('Co-operative House Construction Society E 346', margin + contentWidth / 2, margin + 18, { align: 'center' });
-
-                // Add contact info
-                doc.setFontSize(10);
-                doc.setTextColor(100);
-                doc.text('Ravipuram, Email: shipyardhousingsocity@gmail.com | csshcs@yahoo.com', margin + contentWidth / 2, margin + 25, { align: 'center' });
-
-                // Add RECEIPT heading
-                doc.setFontSize(19);
-                doc.setTextColor(0, 122, 193);
-                doc.text('RECEIPT', margin + contentWidth / 2, margin + 35, { align: 'center' });
-
-                // Add user and receipt details
-                doc.setFontSize(12);
-                doc.setTextColor(0);
-                doc.text(`Name: ${userName}`, margin + 10, margin + 45);
-                doc.text(`Member No: ${memberNumber}`, margin + 10, margin + 52);
-                doc.text(`Loan No: ${receiptData.loanNumber || 'N/A'}`, margin + 10, margin + 59);
-                doc.text(`Date: ${receiptData.date || 'N/A'}`, pageWidth - margin - 20, margin + 45, { align: 'right' });
-                doc.text(`Receipt No: ${receiptData.receiptNumber || 'N/A'}`, pageWidth - margin - 20, margin + 52, { align: 'right' });
-
-                // Add transaction details heading
-                doc.setFontSize(14);
-                doc.setTextColor(0, 122, 193);
-                doc.text('Transaction Details', margin + contentWidth / 2, margin + 70, { align: 'center' });
-
-                // Transaction table data
-                const transactionData = [
-                    ['Description', 'Amount (₹)'],
-                    ['Principal Paid', receiptData.principal || '0'],
-                    ['Interest Paid', receiptData.interest || '0'],
-                    ['Total Paid', (parseFloat(receiptData.principal || 0) + parseFloat(receiptData.interest || 0)).toFixed(2)],
-                    ['New Balance', receiptData.newBalance || '0']
-                ];
-
-                // Generate transaction table
-                doc.autoTable({
-                    startY: margin + 75,
-                    head: [transactionData[0]],
-                    body: transactionData.slice(1),
-                    theme: 'grid',
-                    styles: { halign: 'center', cellPadding: 2, lineHeight: 1.5 },
-                    headStyles: { fillColor: [0, 122, 193], textColor: 255 },
-                    margin: { left: margin + 10, right: margin + 10 }
-                });
-
-                // Add recent transactions heading
-                doc.setFontSize(14);
-                doc.setTextColor(0, 122, 193);
-                doc.text('Recent Transactions', margin + contentWidth / 2, doc.lastAutoTable.finalY + 15, { align: 'center' });
-
-                // Fetch and add recent transactions
-                const recentTransactions = await getRecentTransactions(userId, 10);
-                console.log('Recent transactions fetched:', recentTransactions.length, recentTransactions);
-
-                const recentData = recentTransactions.map(t => [
-                    t.date || 'N/A',
-                    `₹${t.principal || '0'}`,
-                    `₹${t.interest || '0'}`,
-                    `₹${t.newBalance || '0'}`,
-                    t.receiptNumber || 'N/A'
-                ]);
-
-                doc.autoTable({
-                    startY: doc.lastAutoTable.finalY + 20,
-                    head: [['Date', 'Principal', 'Interest', 'Balance', 'Receipt No']],
-                    body: recentData,
-                    theme: 'grid',
-                    styles: { halign: 'center', cellPadding: 2, lineHeight: 1.5 },
-                    headStyles: { fillColor: [0, 122, 193], textColor: 255 },
-                    margin: { left: margin + 10, right: margin + 10 }
-                });
-
-                // Add signature area
-                const finalY = doc.lastAutoTable.finalY + 20;
-                doc.line(margin + 30, finalY, margin + 70, finalY);
-                doc.text('Secretary', margin + 50, finalY + 10);
-
-                doc.line(pageWidth - margin - 70, finalY, pageWidth - margin - 30, finalY);
-                doc.text('Treasurer', pageWidth - margin - 50, finalY + 10);
-
-                // Add footer note
-                doc.setFontSize(8);
-                doc.setTextColor(100);
-                doc.text('Computer generated print out', margin + contentWidth / 2, pageHeight - margin - 5, { align: 'center' });
-
-                // Save the PDF
-                const now = new Date();
-                const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '');
-                const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '');
-                const fileName = `Receipt_${receiptData.receiptNumber || 'N/A'}_${dateStr}${timeStr}.pdf`;
-                doc.save(fileName);
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                document.getElementById('error').innerText = 'Error generating PDF. Attempting Chrome redirect...';
-
-                // Fallback: Redirect to Chrome
-                const url = `intent://yourdomain.com/generate-pdf?userName=${encodeURIComponent(userName)}&memberNumber=${encodeURIComponent(memberNumber)}&receiptData=${encodeURIComponent(receiptDataStr)}#Intent;scheme=https;package=com.android.chrome;end`;
-                window.location.href = url;
-            }
+        function addPageHeaderAndBorder(pageTitle) {
+            doc.setLineWidth(0.5);
+            doc.rect(margin, margin, contentWidth, pageHeight - 2 * margin);
+            doc.setFontSize(16);
+            doc.text('Cochin Shipyard Staff', margin + contentWidth / 2, margin + 10, { align: 'center' });
+            doc.text('Co-operative House Construction Society E 346', margin + contentWidth / 2, margin + 18, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(pageTitle, margin + contentWidth / 2, margin + 28, { align: 'center' });
+            doc.text(`Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`, pageWidth - margin - 10, margin + 28, { align: 'right' });
         }
 
-        async function getRecentTransactions(userId, limit) {
-            try {
-                const q = query(
-                    collection(db, 'payments'),
-                    where('userId', '==', userId),
-                    orderBy('date', 'desc'),
-                    limit(limit)
-                );
+        // Add header and receipt details
+        addPageHeaderAndBorder('Receipt');
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text(`Name: ${userName}`, margin + 10, margin + 40);
+        doc.text(`Member No: ${memberNumber}`, margin + 10, margin + 47);
+        doc.text(`Loan No: ${receiptData.loanNumber || 'N/A'}`, margin + 10, margin + 54);
+        doc.text(`Date: ${receiptData.date || 'N/A'}`, pageWidth - margin - 20, margin + 40, { align: 'right' });
+        doc.text(`Receipt No: ${receiptData.receiptNumber || 'N/A'}`, pageWidth - margin - 20, margin + 47, { align: 'right' });
 
-                const snapshot = await getDocs(q);
-                console.log('Number of recent transactions:', snapshot.size, 'Docs:', snapshot.docs.map(doc => doc.data()));
-                return snapshot.docs.map(doc => doc.data());
-            } catch (error) {
-                console.error('Error fetching recent transactions:', error);
-                return [];
-            }
-        }
+        // Transaction details
+        doc.setFontSize(14);
+        doc.setTextColor(0, 122, 193);
+        doc.text('Transaction Details', margin + contentWidth / 2, margin + 70, { align: 'center' });
 
-        // Execute PDF generation on page load
-        window.onload = generateReceiptPDF;
+        const transactionData = [
+            ['Description', 'Amount (₹)'],
+            ['Principal Paid', receiptData.principal || '0'],
+            ['Interest Paid', receiptData.interest || '0'],
+            ['Total Paid', (parseFloat(receiptData.principal || 0) + parseFloat(receiptData.interest || 0)).toFixed(2)],
+            ['New Balance', receiptData.newBalance || '0']
+        ];
+
+        doc.autoTable({
+            startY: margin + 75,
+            head: [transactionData[0]],
+            body: transactionData.slice(1),
+            theme: 'grid',
+            styles: { halign: 'center', cellPadding: 2, lineHeight: 1.5 },
+            headStyles: { fillColor: [0, 122, 193], textColor: 255 },
+            margin: { left: margin + 10, right: margin + 10 }
+        });
+
+        // Save PDF
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '');
+        const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '');
+        const fileName = `Receipt_${receiptData.receiptNumber || 'N/A'}_${dateStr}${timeStr}.pdf`;
+        doc.save(fileName);
     </script>
 </body>
 </html>
