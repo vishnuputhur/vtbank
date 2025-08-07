@@ -14,13 +14,58 @@
 <body>
     <p id="error"></p>
 
-    <script>
+    <script type="module">
+        // Firebase setup
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
+            authDomain: "probanker-2bce7.firebaseapp.com",
+            projectId: "probanker-2bce7",
+            storageBucket: "probanker-2bce7.appspot.com",
+            messagingSenderId: "27106244956",
+            appId: "1:27106244956:web:59792c9dc94aa8e5232999",
+            measurementId: "G-31138VCDFZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const userName = decodeURIComponent(urlParams.get('userName') || 'VT Soft User');
         const memberNumber = decodeURIComponent(urlParams.get('memberNumber') || 'N/A');
         const receiptDataStr = decodeURIComponent(urlParams.get('receiptData') || '{}');
         const receiptData = JSON.parse(receiptDataStr);
+
+        // Function to fetch recent transactions
+        async function getRecentTransactions(userId) {
+            try {
+                const paymentsSnapshot = await getDocs(query(
+                    collection(db, 'payments'),
+                    where('userId', '==', userId),
+                    orderBy('date', 'desc'),
+                    limit(8)
+                ));
+                const transactions = [];
+                paymentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    transactions.push([
+                        data.date || 'N/A',
+                        `₹${data.principal || '0'}`,
+                        `₹${data.interest || '0'}`,
+                        `₹${data.newBalance || '0'}`,
+                        data.receiptNumber || 'N/A'
+                    ]);
+                });
+                return transactions;
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+                document.getElementById('error').innerText = 'Error loading recent transactions.';
+                return [];
+            }
+        }
 
         // Generate PDF
         const { jsPDF } = window.jspdf;
@@ -82,27 +127,19 @@
             margin: { left: margin + 10, right: margin + 10 }
         });
 
-        // Recent 8 transactions
+        // Recent 8 transactions from Firebase
         doc.setFontSize(14);
         doc.setTextColor(0, 122, 193);
         doc.text('Recent Transactions', margin + contentWidth / 2, doc.lastAutoTable.finalY + 15, { align: 'center' });
 
-        // Placeholder for recent transactions (to be replaced with actual data fetch if needed)
-        const recentData = [
-            ['01/08/2025', '₹500', '₹50', '₹9500', 'R001'],
-            ['02/08/2025', '₹500', '₹50', '₹9000', 'R002'],
-            ['03/08/2025', '₹500', '₹50', '₹8500', 'R003'],
-            ['04/08/2025', '₹500', '₹50', '₹8000', 'R004'],
-            ['05/08/2025', '₹500', '₹50', '₹7500', 'R005'],
-            ['06/08/2025', '₹500', '₹50', '₹7000', 'R006'],
-            ['07/08/2025', '₹500', '₹50', '₹6500', 'R007'],
-            ['08/08/2025', '₹500', '₹50', '₹6000', 'R008']
-        ].slice(0, 8); // Limit to 8
+        // Fetch recent transactions dynamically
+        const userId = receiptData.userId || ''; // Assuming userId is in receiptData
+        const recentTransactions = await getRecentTransactions(userId);
 
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 20,
             head: [['Date', 'Principal', 'Interest', 'Balance', 'Receipt No']],
-            body: recentData,
+            body: recentTransactions,
             theme: 'grid',
             styles: { halign: 'center', cellPadding: 2, lineHeight: 1.2, fontSize: 8 },
             headStyles: { fillColor: [0, 122, 193], textColor: 255 },
