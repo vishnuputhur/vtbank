@@ -38,28 +38,31 @@
         function addPageHeaderAndBorder(pageTitle) {
             doc.setLineWidth(0.5);
             doc.rect(margin, margin, contentWidth, pageHeight - 2 * margin);
+            doc.setFillColor(30, 58, 138); // Dark blue theme color
+            doc.rect(margin, margin, contentWidth, 30, 'F'); // Header background
             doc.setFontSize(16);
-            doc.text('Cochin Shipyard Staff', margin + contentWidth / 2, margin + 10, { align: 'center' });
-            doc.text('Co-operative House Construction Society E 346', margin + contentWidth / 2, margin + 18, { align: 'center' });
+            doc.setTextColor(255, 255, 255); // White text
+            doc.text('Cochin Shipyard Staff', margin + contentWidth / 2, margin + 15, { align: 'center' });
+            doc.text('Co-operative House Construction Society E 346', margin + contentWidth / 2, margin + 22, { align: 'center' });
             doc.setFontSize(12);
-            doc.text(pageTitle, margin + contentWidth / 2, margin + 28, { align: 'center' });
-            doc.text(`Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`, pageWidth - margin - 10, margin + 28, { align: 'right' });
+            doc.text(pageTitle, margin + contentWidth / 2, margin + 40, { align: 'center' });
+            doc.text(`Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`, pageWidth - margin - 10, margin + 40, { align: 'right' });
         }
 
         // Add header and receipt details
         addPageHeaderAndBorder('Receipt');
         doc.setFontSize(12);
         doc.setTextColor(0);
-        doc.text(`Name: ${userName}`, margin + 10, margin + 40);
-        doc.text(`Member No: ${memberNumber}`, margin + 10, margin + 47);
-        doc.text(`Loan No: ${receiptData.loanNumber || 'N/A'}`, margin + 10, margin + 54);
-        doc.text(`Date: ${receiptData.date || 'N/A'}`, pageWidth - margin - 20, margin + 40, { align: 'right' });
-        doc.text(`Receipt No: ${receiptData.receiptNumber || 'N/A'}`, pageWidth - margin - 20, margin + 47, { align: 'right' });
+        doc.text(`Name: ${userName}`, margin + 10, margin + 50);
+        doc.text(`Member No: ${memberNumber}`, margin + 10, margin + 57);
+        doc.text(`Loan No: ${receiptData.loanNumber || 'N/A'}`, margin + 10, margin + 64);
+        doc.text(`Date: ${receiptData.date || 'N/A'}`, pageWidth - margin - 20, margin + 50, { align: 'right' });
+        doc.text(`Receipt No: ${receiptData.receiptNumber || 'N/A'}`, pageWidth - margin - 20, margin + 57, { align: 'right' });
 
         // Transaction details
         doc.setFontSize(14);
         doc.setTextColor(0, 122, 193);
-        doc.text('Transaction Details', margin + contentWidth / 2, margin + 70, { align: 'center' });
+        doc.text('Transaction Details', margin + contentWidth / 2, margin + 80, { align: 'center' });
 
         const transactionData = [
             ['Description', 'Amount (₹)'],
@@ -70,14 +73,50 @@
         ];
 
         doc.autoTable({
-            startY: margin + 75,
+            startY: margin + 85,
             head: [transactionData[0]],
             body: transactionData.slice(1),
             theme: 'grid',
-            styles: { halign: 'center', cellPadding: 2, lineHeight: 1.5 },
+            styles: { halign: 'center', cellPadding: 2, lineHeight: 1.2, fontSize: 10 },
             headStyles: { fillColor: [0, 122, 193], textColor: 255 },
             margin: { left: margin + 10, right: margin + 10 }
         });
+
+        // Recent 8 transactions
+        doc.setFontSize(14);
+        doc.setTextColor(0, 122, 193);
+        doc.text('Recent Transactions', margin + contentWidth / 2, doc.lastAutoTable.finalY + 15, { align: 'center' });
+
+        // Placeholder for recent transactions (to be replaced with actual data fetch if needed)
+        const recentData = [
+            ['01/08/2025', '₹500', '₹50', '₹9500', 'R001'],
+            ['02/08/2025', '₹500', '₹50', '₹9000', 'R002'],
+            ['03/08/2025', '₹500', '₹50', '₹8500', 'R003'],
+            ['04/08/2025', '₹500', '₹50', '₹8000', 'R004'],
+            ['05/08/2025', '₹500', '₹50', '₹7500', 'R005'],
+            ['06/08/2025', '₹500', '₹50', '₹7000', 'R006'],
+            ['07/08/2025', '₹500', '₹50', '₹6500', 'R007'],
+            ['08/08/2025', '₹500', '₹50', '₹6000', 'R008']
+        ].slice(0, 8); // Limit to 8
+
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [['Date', 'Principal', 'Interest', 'Balance', 'Receipt No']],
+            body: recentData,
+            theme: 'grid',
+            styles: { halign: 'center', cellPadding: 2, lineHeight: 1.2, fontSize: 8 },
+            headStyles: { fillColor: [0, 122, 193], textColor: 255 },
+            margin: { left: margin + 10, right: margin + 10 }
+        });
+
+        // Footer with Secretary and Treasurer
+        const footerY = doc.lastAutoTable.finalY + 20;
+        doc.setFontSize(10);
+        doc.setTextColor(0);
+        doc.text('Secretary', margin + 30, footerY);
+        doc.text('Treasurer', pageWidth - margin - 30, footerY);
+        doc.setFontSize(8);
+        doc.text('Computer generated print out', margin + contentWidth / 2, pageHeight - margin - 5, { align: 'center' });
 
         // Save PDF
         const now = new Date();
