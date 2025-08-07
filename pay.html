@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Society App - Pay QR</title>
   <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -16,56 +26,80 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
-      padding-top: 90px;
+      padding-top: 4mm; /* Top gap as per loan-details.html */
       padding-bottom: 40px;
+      box-sizing: border-box;
     }
+
     .cover-image {
       width: 100%;
       height: auto;
       max-height: 169px;
       object-fit: cover;
+      animation: fadeIn 1s ease-in-out;
       position: fixed;
-      top: 0;
+      top: 4mm; /* Consistent with loan-details.html */
       left: 0;
       z-index: 1000;
+      background: white;
     }
+
+    .card-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
+      margin-top: 80px; /* Adjusted to account for fixed cover image */
+    }
+
     .card {
       background: #ffffff;
       border-radius: 20px;
       padding: 20px;
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3); /* 3D shadow */
       margin: 15px auto;
       border: 1px solid #e0e7ff;
       text-align: center;
+      animation: fadeIn 1.5s ease-in-out;
     }
+
     .card canvas.qr {
       width: 200px;
       height: 200px;
       margin: 15px auto;
       display: none;
     }
+
     .qr-show {
       display: block !important;
     }
+
     h1 {
       margin-bottom: 15px;
       font-size: 22px;
       color: #007AC1;
       font-weight: 600;
+      animation: pulse 2s infinite; /* Added pulse animation */
     }
+
     p {
       margin: 5px 0;
       color: #007AC1;
       font-size: 14px;
     }
+
     .due-amount {
       font-size: 18px;
       font-weight: bold;
       color: #007AC1;
       margin: 10px 0;
     }
+
     input {
       width: 80%;
       padding: 10px;
@@ -75,12 +109,20 @@
       font-size: 14px;
       box-sizing: border-box;
       background: #f0f9ff;
+      transition: border-color 0.3s ease; /* Smooth transition for focus */
     }
+
+    input:focus {
+      border-color: #007AC1;
+      outline: none;
+    }
+
     .or-text {
       font-size: 12px;
       color: #007AC1;
       margin: 5px 0;
     }
+
     button {
       width: 80%;
       padding: 12px;
@@ -92,12 +134,14 @@
       font-size: 14px;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.3s ease;
-      box-shadow: 0 4px 10px rgba(0, 122, 193, 0.2);
+      box-shadow: 0 4px 10px rgba(0, 122, 193, 0.2); /* 3D effect */
     }
+
     button:hover {
       background: #005f99;
-      transform: translateY(-2px);
+      transform: translateY(-2px); /* 3D lift effect on hover */
     }
+
     .footer {
       width: 100%;
       background: #007AC1;
@@ -111,23 +155,30 @@
       left: 0;
       z-index: 1000;
     }
+
+    @media (min-width: 768px) {
+      .card { max-width: 450px; }
+      input, button { font-size: 16px; }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-    <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
-  <div class="card">
-    <h1>Pay by UPI</h1>
-    <div id="qrcode" class="qr"></div>
-    <p id="memberNumberDisplay"></p>
-    <p class="due-amount" id="dueAmountDisplay"></p>
-    <input type="number" id="editableAmount" placeholder="Enter Custom Amount (Optional)" oninput="preventNegative()" />
-    <button onclick="payNow()">Pay Now</button>
-    <p class="or-text">or</p>
-    <button onclick="generateQRCode()">Generate QR Code</button>
-    
+  <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
+  <div class="card-container">
+    <div class="card">
+      <h1>Pay by UPI</h1>
+      <div id="qrcode" class="qr"></div>
+      <p id="memberNumberDisplay"></p>
+      <p class="due-amount" id="dueAmountDisplay"></p>
+      <input type="number" id="editableAmount" placeholder="Enter Custom Amount (Optional)" oninput="preventNegative()" />
+      <button onclick="payNow()">Pay Now</button>
+      <p class="or-text">or</p>
+      <button onclick="generateQRCode()">Generate QR Code</button>
+    </div>
   </div>
   <div class="footer">CSSCHCS | VTSoft | © 2025</div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
@@ -193,7 +244,7 @@
               : paymentsSnapshot.docs[0].data().date;
 
             const lastDate = new Date(lastPaymentDate);
-            const todayDate = new Date('2025-08-05');
+            const todayDate = new Date(); // Dynamic date based on current time
             const daysDiff = Math.max(0, Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24)));
 
             const principalPerInstallment = loanData.amount / loanData.installments || 0;
@@ -212,6 +263,7 @@
           document.getElementById('memberNumberDisplay').textContent = 'Member not found!';
         }
       } catch (error) {
+        console.error('Error fetching loan details:', error);
         document.getElementById('memberNumberDisplay').textContent = `Error: ${error.message}`;
       }
     }
@@ -219,6 +271,7 @@
     function clearFields() {
       document.getElementById('dueAmountDisplay').textContent = '';
       document.getElementById('editableAmount').value = '';
+      if (qrcode) qrcode.clear(); // Clear existing QR code
       document.getElementById('qrcode').innerHTML = '';
       document.getElementById('qrcode').classList.remove('qr-show');
     }
@@ -244,7 +297,7 @@
       const upiURL = `upi://pay?pa=${encodeURIComponent(upiID)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
 
       const qrEl = document.getElementById('qrcode');
-      qrEl.innerHTML = '';
+      if (qrcode) qrcode.clear(); // Clear previous QR code
       qrcode = new QRCode(qrEl, {
         text: upiURL,
         width: 200,
@@ -272,17 +325,14 @@
       const upiURL = `upi://pay?pa=${encodeURIComponent(upiID)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR&tn=MemberNo:${memberNumber}`;
 
       try {
-        // Attempt to trigger the UPI app
         window.location.href = upiURL;
         console.log('Attempting to trigger UPI:', upiURL);
-        // Immediately redirect to index.html
         setTimeout(() => {
           window.location.href = 'index.html';
         }, 100); // Small delay to allow UPI app to trigger
       } catch (error) {
         console.error('UPI redirect error:', error);
         alert('UPI app not triggered. Ensure a UPI app is installed.');
-        // Redirect to index.html even on error
         window.location.href = 'index.html';
       }
     };
