@@ -319,7 +319,7 @@
               const receiptData = JSON.parse(e.target.dataset.receipt);
               const userName = document.getElementById('welcomeMsg').innerText.replace('Hi, ', '');
               const memberNumber = document.getElementById('memberNo').innerText.replace('Member No: ', '');
-              const url = `generate-pdf.html?userName=${encodeURIComponent(userName)}&memberNumber=${encodeURIComponent(memberNumber)}&receiptData=${encodeURIComponent(JSON.stringify(receiptData))}`;
+              const url = `openchrome://vishnuputhur.github.io/cslv2/generate-pdf.html?userName=${encodeURIComponent(userName)}&memberNumber=${encodeURIComponent(memberNumber)}&receiptData=${encodeURIComponent(JSON.stringify(receiptData))}`;
               console.log('Redirecting to:', url); // Debug log
               window.location.href = url;
             });
