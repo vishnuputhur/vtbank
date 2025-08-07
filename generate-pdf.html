@@ -14,58 +14,15 @@
 <body>
     <p id="error"></p>
 
-    <script type="module">
-        // Firebase setup
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDX_xJLR_FnVg3e_v-e7ZBnaBGAyMVyj1s",
-            authDomain: "probanker-2bce7.firebaseapp.com",
-            projectId: "probanker-2bce7",
-            storageBucket: "probanker-2bce7.appspot.com",
-            messagingSenderId: "27106244956",
-            appId: "1:27106244956:web:59792c9dc94aa8e5232999",
-            measurementId: "G-31138VCDFZ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
+    <script>
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const userName = decodeURIComponent(urlParams.get('userName') || 'VT Soft User');
         const memberNumber = decodeURIComponent(urlParams.get('memberNumber') || 'N/A');
         const receiptDataStr = decodeURIComponent(urlParams.get('receiptData') || '{}');
         const receiptData = JSON.parse(receiptDataStr);
-
-        // Function to fetch recent transactions
-        async function getRecentTransactions(userId) {
-            try {
-                const paymentsSnapshot = await getDocs(query(
-                    collection(db, 'payments'),
-                    where('userId', '==', userId),
-                    orderBy('date', 'desc'),
-                    limit(8)
-                ));
-                const transactions = [];
-                paymentsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    transactions.push([
-                        data.date || 'N/A',
-                        `₹${data.principal || '0'}`,
-                        `₹${data.interest || '0'}`,
-                        `₹${data.newBalance || '0'}`,
-                        data.receiptNumber || 'N/A'
-                    ]);
-                });
-                return transactions;
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
-                document.getElementById('error').innerText = 'Error loading recent transactions.';
-                return [];
-            }
-        }
+        const allTransactionsStr = decodeURIComponent(urlParams.get('allTransactions') || '[]');
+        const allTransactions = JSON.parse(allTransactionsStr);
 
         // Generate PDF
         const { jsPDF } = window.jspdf;
@@ -127,14 +84,12 @@
             margin: { left: margin + 10, right: margin + 10 }
         });
 
-        // Recent 8 transactions from Firebase
+        // Recent 8 transactions from passed data
         doc.setFontSize(14);
         doc.setTextColor(0, 122, 193);
         doc.text('Recent Transactions', margin + contentWidth / 2, doc.lastAutoTable.finalY + 15, { align: 'center' });
 
-        // Fetch recent transactions dynamically
-        const userId = receiptData.userId || ''; // Assuming userId is in receiptData
-        const recentTransactions = await getRecentTransactions(userId);
+        const recentTransactions = allTransactions.slice(0, 8); // Limit to 8
 
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 20,
