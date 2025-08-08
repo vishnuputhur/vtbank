@@ -173,7 +173,7 @@
 </head>
 <body>
   <!-- Top Cover Image -->
-  <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
+  <img src="https://i.ibb.co/wNGKBby/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
 
   <div class="card-container">
     <div class="card">
@@ -304,24 +304,43 @@
           const allTransactions = [];
           paymentsSnapshot.forEach(doc => {
             const data = doc.data();
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${data.date || 'N/A'}</td>
-              <td>₹${data.principal || 0}</td>
-              <td>₹${data.interest || 0}</td>
-              <td>₹${data.newBalance || 0}</td>
-              <td><button class="download-btn" data-receipt='${JSON.stringify(data)}'>PDF</button></td>
-            `;
-            transactionBody.appendChild(row);
-            allTransactions.push([data.date || 'N/A', `₹${data.principal || '0'}`, `₹${data.interest || '0'}`, `₹${data.newBalance || '0'}`, data.receiptNumber || 'N/A']);
+            allTransactions.push({
+              date: data.date || 'N/A',
+              principal: data.principal || 0,
+              interest: data.interest || 0,
+              newBalance: data.newBalance || 0,
+              receiptNumber: data.receiptNumber || 'N/A',
+              receiptData: data
+            });
           });
 
+          // Sort transactions by date in descending order (latest first)
+          allTransactions.sort((a, b) => {
+            const dateA = a.date === 'N/A' ? new Date(0) : new Date(a.date);
+            const dateB = b.date === 'N/A' ? new Date(0) : new Date(b.date);
+            return dateB - dateA; // Descending order
+          });
+
+          // Render sorted transactions
+          allTransactions.forEach(transaction => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${transaction.date}</td>
+              <td>₹${transaction.principal}</td>
+              <td>₹${transaction.interest}</td>
+              <td>₹${transaction.newBalance}</td>
+              <td><button class="download-btn" data-receipt='${JSON.stringify(transaction.receiptData)}'>PDF</button></td>
+            `;
+            transactionBody.appendChild(row);
+          });
+
+          // Attach event listeners to download buttons
           document.querySelectorAll('.download-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
               const receiptData = JSON.parse(e.target.dataset.receipt);
               const userName = document.getElementById('welcomeMsg').innerText.replace('Hi, ', '');
               const memberNumber = document.getElementById('memberNo').innerText.replace('Member No: ', '');
-              const url = `openchrome://vishnuputhur.github.io/vtbank/generate-pdf.html?userName=${encodeURIComponent(userName)}&memberNumber=${encodeURIComponent(memberNumber)}&receiptData=${encodeURIComponent(JSON.stringify(receiptData))}&allTransactions=${encodeURIComponent(JSON.stringify(allTransactions))}`;
+              const url = `openchrome://vishnuputhur.github.io/vtbank/generate-pdf.html?userName=${encodeURIComponent(userName)}&memberNumber=${encodeURIComponent(memberNumber)}&receiptData=${encodeURIComponent(JSON.stringify(receiptData))}&allTransactions=${encodeURIComponent(JSON.stringify(allTransactions.map(t => [t.date, `₹${t.principal}`, `₹${t.interest}`, `₹${t.newBalance}`, t.receiptNumber])))}`;
               console.log('Redirecting to:', url); // Debug log
               window.location.href = url;
             });
