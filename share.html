@@ -129,7 +129,7 @@
     </div>
   </div>
 
-  <div class="footer">Powered by VT Soft 2025</div>
+  <div class="footer">CSSCHVS | VTSoft ©2025</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
@@ -160,8 +160,8 @@
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
-            const shareValue = data.share !== undefined ? data.share : '--';
             const shareAmountValue = data.shareAmount !== undefined ? data.shareAmount : 0;
+            const shareValue = shareAmountValue !== 0 ? Math.floor(shareAmountValue / 250) : '--';
             shareValueEl.innerText = shareValue;
             shareAmountValueEl.innerText = `₹${shareAmountValue.toFixed(2)}`;
           } else {
