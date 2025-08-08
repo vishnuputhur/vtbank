@@ -26,9 +26,9 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
-      padding-top: 4mm; /* Changed to match payment page */
+      padding-top: 4mm;
       padding-bottom: 40px;
-      box-sizing: border-box; /* Added to match payment page */
+      box-sizing: border-box;
     }
 
     .cover-image {
@@ -36,12 +36,22 @@
       height: auto;
       max-height: 169px;
       object-fit: cover;
-      animation: fadeIn 1s ease-in-out; /* Added animation */
+      animation: fadeIn 1s ease-in-out;
       position: fixed;
-      top: 4mm; /* Changed to match payment page */
+      top: 4mm;
       left: 0;
       z-index: 1000;
-      background: white; /* Added to match payment page */
+      background: white;
+    }
+
+    .card-container {
+      width: 100%;
+      padding: 0 10px;
+      box-sizing: border-box;
+      margin-top: calc(169px + 4mm + 15mm); /* Image height + top gap + 15mm */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .card {
@@ -50,11 +60,11 @@
       padding: 20px;
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3); /* Consistent shadow */
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
       margin: 15px auto;
       border: 1px solid #e0e7ff;
       text-align: center;
-      animation: fadeIn 1.5s ease-in-out; /* Added animation to match card */
+      animation: fadeIn 1.5s ease-in-out;
     }
 
     h1 {
@@ -62,7 +72,7 @@
       font-size: 22px;
       color: #007AC1;
       font-weight: 600;
-      animation: pulse 2s infinite; /* Added pulse animation */
+      animation: pulse 2s infinite;
     }
 
     p {
@@ -122,23 +132,25 @@
     }
 
     @media (min-width: 768px) {
-      .card { max-width: 450px; } /* Added to match payment page */
-      input, button { font-size: 16px; } /* Added to match payment page */
+      .card { max-width: 450px; }
+      input, button { font-size: 16px; }
     }
   </style>
 </head>
 <body>
   <img src="https://i.ibb.co/wNGKBbyT/poster-2025-08-04-123527.png" alt="Top Poster" class="cover-image" />
 
-  <div class="card">
-    <h1>Change Password</h1>
-    <p>Update your password securely.</p>
-    <input type="password" id="currentPassword" placeholder="Current Password" />
-    <input type="password" id="newPassword" placeholder="New Password" />
-    <input type="password" id="confirmPassword" placeholder="Confirm New Password" />
-    <button onclick="changePassword()">Save Changes</button>
-    
-    <p id="message"></p>
+  <div class="card-container">
+    <div class="card">
+      <h1>Change Password</h1>
+      <p>Update your password securely.</p>
+      <input type="password" id="currentPassword" placeholder="Current Password" />
+      <input type="password" id="newPassword" placeholder="New Password" />
+      <input type="password" id="confirmPassword" placeholder="Confirm New Password" />
+      <button onclick="changePassword()">Save Changes</button>
+      
+      <p id="message"></p>
+    </div>
   </div>
 
   <div class="footer">CSSCHCS | VTSoft | © 2025</div>
