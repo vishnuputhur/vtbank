@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Society App - Change Password</title>
   <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -16,41 +26,51 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
-      padding-top: 90px; /* Reduced gap */
-      padding-bottom: 40px; /* Space for fixed footer */
+      padding-top: 4mm; /* Changed to match payment page */
+      padding-bottom: 40px;
+      box-sizing: border-box; /* Added to match payment page */
     }
+
     .cover-image {
       width: 100%;
       height: auto;
       max-height: 169px;
       object-fit: cover;
+      animation: fadeIn 1s ease-in-out; /* Added animation */
       position: fixed;
-      top: 0;
+      top: 4mm; /* Changed to match payment page */
       left: 0;
       z-index: 1000;
+      background: white; /* Added to match payment page */
     }
+
     .card {
       background: #ffffff;
       border-radius: 20px;
       padding: 20px;
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3);
+      box-shadow: 0 15px 40px rgba(0, 122, 193, 0.3); /* Consistent shadow */
       margin: 15px auto;
       border: 1px solid #e0e7ff;
       text-align: center;
+      animation: fadeIn 1.5s ease-in-out; /* Added animation to match card */
     }
+
     h1 {
       margin-bottom: 15px;
       font-size: 22px;
       color: #007AC1;
       font-weight: 600;
+      animation: pulse 2s infinite; /* Added pulse animation */
     }
+
     p {
       margin: 5px 0;
       color: #007AC1;
       font-size: 14px;
     }
+
     input {
       width: 80%;
       padding: 10px;
@@ -61,6 +81,7 @@
       box-sizing: border-box;
       background: #f0f9ff;
     }
+
     button {
       width: 80%;
       padding: 12px;
@@ -74,10 +95,12 @@
       transition: background 0.3s ease, transform 0.3s ease;
       box-shadow: 0 4px 10px rgba(0, 122, 193, 0.2);
     }
+
     button:hover {
       background: #005f99;
       transform: translateY(-2px);
     }
+
     .footer {
       width: 100%;
       background: #007AC1;
@@ -91,10 +114,16 @@
       left: 0;
       z-index: 1000;
     }
+
     #message {
       color: #e74c3c;
       font-size: 12px;
       margin-top: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .card { max-width: 450px; } /* Added to match payment page */
+      input, button { font-size: 16px; } /* Added to match payment page */
     }
   </style>
 </head>
@@ -161,10 +190,10 @@
             updatePassword(user, newPassword)
               .then(() => {
                 message.textContent = 'Password updated successfully!';
-                message.style.color = '#2ecc71'; // Green for success
+                message.style.color = '#2ecc71';
                 setTimeout(() => {
                   window.location.href = 'home.html';
-                }, 2000); // Redirect after 2 seconds
+                }, 2000);
               })
               .catch((error) => {
                 message.textContent = 'Error updating password: ' + error.message;
