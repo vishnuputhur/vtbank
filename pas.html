@@ -147,7 +147,7 @@
       <input type="password" id="currentPassword" placeholder="Current Password" />
       <input type="password" id="newPassword" placeholder="New Password" />
       <input type="password" id="confirmPassword" placeholder="Confirm New Password" />
-      <button onclick="changePassword()">Save Changes</button>
+      <button id="changePasswordBtn">Save Changes</button>
       
       <p id="message"></p>
     </div>
@@ -219,6 +219,9 @@
         window.location.href = 'home.html';
       }
     }
+
+    // Attach event listener to the button
+    document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
   </script>
 </body>
 </html>
