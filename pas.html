@@ -203,9 +203,6 @@
               .then(() => {
                 message.textContent = 'Password updated successfully!';
                 message.style.color = '#2ecc71';
-                setTimeout(() => {
-                  window.location.href = 'home.html';
-                }, 2000);
               })
               .catch((error) => {
                 message.textContent = 'Error updating password: ' + error.message;
@@ -216,7 +213,6 @@
           });
       } else {
         message.textContent = 'No user logged in!';
-        window.location.href = 'home.html';
       }
     }
 
